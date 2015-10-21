@@ -1,0 +1,42 @@
+/* ========================================================================== *
+ * Copyright (c) 2015 秦凡东 (Qin Fandong)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ========================================================================== *
+ * Write line to stream
+ * ========================================================================== */
+#ifndef __SAY_H__
+#define __SAY_H__
+
+typedef enum mode
+{
+  MODE_FILE = 0,
+  MODE_OUT,
+} saymode_t;
+
+typedef enum level
+{
+  MSG_I = 0,
+  MSG_W,
+  MSG_E,
+} saylevel_t;
+
+/* Get write mode */
+int sayMode (saymode_t * const mode);
+/* Write line to stream */
+int say (const saymode_t mode, const saylevel_t level,
+         const char * const str, ...);
+
+#endif
+

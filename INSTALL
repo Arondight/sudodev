@@ -1,0 +1,20 @@
+1. Install the program
+
+    Run "install.sh"
+
+2. Install init script
+
+    See "init/README.txt"
+
+3. Be a member of "sudodev" group
+
+    After run sudodevd(do this via service manager such as systemctl),
+    the "sudodev" group will be create, you should add to this group
+    to make sudodevd take effect.
+
+    After startup sudodevd , run:
+
+      sudo sh -c "gpasswd -a $USER sudodev && reboot"
+
+    If no error reported, sudodev will take effect after reboot.
+

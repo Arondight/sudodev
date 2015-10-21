@@ -1,0 +1,17 @@
+# sudodevd - Create your special device for a none-password sudo
+
+[Unit]
+Description=Create your special device for a none-password sudo
+Documentation=https://github.com/Arondight/sudodev
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/sudodevd
+ExecStop=/bin/kill -TERM $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+WantedBy=graphical.target
+

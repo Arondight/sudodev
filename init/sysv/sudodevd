@@ -1,0 +1,68 @@
+#!/bin/sh
+# sudodevd - Create your special device for a none-password sudo
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DESC="sudodev daemon"
+NAME=sudodevd
+DAEMON=/usr/bin/sudodevd
+SCRIPTNAME=/etc/init.d/$NAME
+PIDFILE=/var/run/sudodevd.pid
+PID=''
+
+# If the daemon file is not found, terminate the script.
+test -x $DAEMON || exit 0
+
+d_start() {
+  $DAEMON || echo -n " already running"
+}
+
+d_stop() {
+  PID=''
+  test -r $PIDFILE && PID=$(cat $PIDFILE)
+  if test -n $PID; then
+    kill -TERM $PID >/dev/null 2>&1
+  else
+    echo -n " could not stop"
+  fi
+}
+
+d_reload() {
+  PID=''
+  test -r $PIDFILE && PID=$(cat $PIDFILE)
+  if test -n $PID; then
+    kill -HUP $PID >/dev/null 2>&1
+  else
+    echo -n " could not reload"
+  fi
+}
+
+case "$1" in
+  start)
+    echo -n "Starting $DESC: $NAME"
+    d_start
+    echo "."
+    ;;
+  stop)
+    echo -n "Stopping $DESC: $NAME"
+    d_stop
+    echo "."
+    ;;
+  reload)
+    echo -n "Reloading $DESC configuration..."
+    d_reload
+    echo "reloaded."
+    ;;
+  restart)
+    echo -n "Restarting $DESC: $NAME"
+    d_stop
+    d_start
+    echo "."
+    ;;
+  *)
+    echo "Usage: $SCRIPTNAME {start|stop|restart|reload}" >&2
+    exit 3
+    ;;
+esac
+
+exit 0
+
