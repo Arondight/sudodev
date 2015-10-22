@@ -107,13 +107,13 @@ addGroup (const char * const group)
 
   /* Get a new group id */
   max = 0;
-  if (!index2)
-    {
-      max = 1000 - 1;
-    }
-  else if (1 == index2)
+  if (1 == index2)
     {
       max = *ids > 1000 ? 1000 - 1 : 1000;
+    }
+  else if (!index2 || *ids > 1000)
+    {
+      max = 1000 - 1;
     }
   else
     {
@@ -121,6 +121,7 @@ addGroup (const char * const group)
         {
           if (ids[index + 1] - ids[index] > 1)
             {
+              max = ids[index];
               break;
             }
           max = ids[index] > max ? ids[index] : max;
