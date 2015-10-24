@@ -14,58 +14,70 @@
  * You should have received a copy of the GNU General Public License
  * aint with this program.  If not, see <http://www.gnu.org/licenses/>.
  * ========================================================================== *
- * Sort a list
+ * Do a merge sort
  * ========================================================================== */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include "say.h"
 
 /* ========================================================================== *
- * Merge 2 list
+ * Merge 2 part
  * ========================================================================== */
 int
-merge (char ** const firstPart, const int firstPartLen,
-       char * const * const secondPart, const int secondPartLen)
+merge (void * const _p1, const size_t p1Len,
+       void * const _p2, const size_t p2Len,
+       const size_t size,
+       int (* const cmp) (const void * const, const void * const))
 {
-  char **tmp;
-  int count, count2, count3;
+  char *tmp;
+  char *p1, *p2;
+  size_t index, index2, index3;
 
-  tmp = (char **)malloc ((firstPartLen + secondPartLen) * sizeof (char **));
-  count = count2 = count3 = 0;
+  p1 = (char *)_p1;
+  p2 = (char *)_p2;
 
-  /* Merge 2 string */
-  while ((count < firstPartLen) && (count2 < secondPartLen))
+  if (!(tmp = (char *)malloc ((p1Len + p2Len) * size)))
+    {
+      abort ();
+    }
+
+  index = index2 = index3 = 0;
+
+  /* Merge 2 part */
+  while ((index < p1Len * size) && (index2 < p2Len * size))
     {
       /* Sort Ascending */
-      if (strcmp (firstPart[count], secondPart[count2]) < 0)
+      if (cmp (&p1[index], &p2[index2]) < 0)
         {
-          tmp[count3] = firstPart[count];
-          ++count;
+          memcpy (&tmp[index3], &p1[index], size);
+          index += size;
         }
       else
         {
-          tmp[count3] = secondPart[count2];
-          ++count2;
+          memcpy (&tmp[index3], &p2[index2], size);
+          index2 += size;
         }
-      ++count3;
+      index3 += size;
     }
 
-  /* Move none treactment string to beginning of &tmp[count3] */
-  while (count < firstPartLen)
+  /* Move none treactment data to beginning of &tmp[index3] */
+  while (index < p1Len * size)
     {
-      tmp[count3] = firstPart[count];
-      ++count;
-      ++count3;
+      memcpy (&tmp[index3], &p1[index], size);
+      index += size;
+      index3 += size;
     }
-  while (count2 < secondPartLen)
+  while (index2 < p2Len * size)
     {
-      tmp[count3] = secondPart[count2];
-      ++count2;
-      ++count3;
+      memcpy (&tmp[index3], &p2[index2], size);
+      index2 += size;
+      index3 += size;
     }
 
-  /* Copy tmp to firstPart */
-  memcpy (firstPart, tmp, (firstPartLen + secondPartLen) * sizeof (char *));
+  /* Copy tmp to p1 */
+  memcpy (p1, tmp, (p1Len + p2Len) * size);
 
   free (tmp);
 
@@ -73,28 +85,39 @@ merge (char ** const firstPart, const int firstPartLen,
 }
 
 /* ========================================================================== *
- * Sort a list using merge sort
+ * Sort data with merge sort
  * ========================================================================== */
 int
-sortList (char ** const list, int len)
+msort (void * const data, const size_t items, const size_t size,
+       int (* const cmp) (const void * const, const void * const))
 {
-  char **firstPart = NULL;
-  char **secondPart = NULL;
-  int firstPartLen = 0;
-  int secondPartLen = 0;
+  char *p1;
+  char *p2;
+  size_t p1Len;
+  size_t p2Len;
 
-  if (len > 1)
+  if (!(data && cmp))
     {
-      /* Split list to 2 part */
-      firstPart = list;
-      firstPartLen = len / 2;
-      secondPart = &list[len / 2];
-      secondPartLen = len - firstPartLen;
+      return -1;
+    }
 
-      sortList (firstPart, firstPartLen);
-      sortList (secondPart, secondPartLen);
+  if (items > 1 && size > 0)
+    {
+      p1 = (char *)data;
+      p1Len = items / 2;
+      p2 = (char *)data + p1Len * size;
+      p2Len = items - p1Len;
 
-      merge (firstPart, firstPartLen, secondPart, secondPartLen);
+      if (-1 == msort (p1, p1Len, size, cmp))
+        {
+          return -1;
+        }
+      if (-1 == msort (p2, p2Len, size, cmp))
+        {
+          return -1;
+        }
+
+      merge (p1, p1Len, p2, p2Len, size, cmp);
     }
 
   return 1;

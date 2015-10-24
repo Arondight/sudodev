@@ -14,12 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * ========================================================================== *
- * Sort 2 list
+ * Do a merge sort
  * ========================================================================== */
 #ifndef __SORT_H__
 #define __SORT_H__
 
-int sortList (char ** const list, int len);
+#include <stddef.h>
+
+int
+msort (void * const data, const size_t items, const size_t size,
+       int (* const cmp) (const void * const, const void * const));
 
 #endif
 

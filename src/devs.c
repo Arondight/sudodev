@@ -45,8 +45,13 @@ devs (char ***addr)
     }
 
   no = 1 << 10;
-  uuids = (char **)malloc (no * sizeof (char *));
+  if (!(uuids = (char **)malloc (no * sizeof (char *))))
+    {
+      say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+      abort ();
+    }
   memset (uuids, 0, no * sizeof (char *));
+
   for (count = 0; (dir = readdir (dh)); ++count)
     {
       if (no == count)
@@ -63,15 +68,24 @@ devs (char ***addr)
         }
 
       len = strlen (dir->d_name);
-      uuids[count] = (char *)malloc (len + 1);
+      if (!(uuids[count] = (char *)malloc (len + 1)))
+        {
+          say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+          abort ();
+        }
       memcpy (uuids[count], dir->d_name, len);
+
       uuids[count][len] = 0;
       chomp (uuids[count]);
     }
 
   if (no == count)
     {
-      uuids = (char **)realloc (uuids, (no + 1) * sizeof (char **));
+      if (!(uuids = (char **)realloc (uuids, (no + 1) * sizeof (char **))))
+        {
+          say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+          abort ();
+        }
       uuids[no] = NULL;
     }
 
@@ -81,5 +95,4 @@ devs (char ***addr)
 
   return 1;
 }
-
 

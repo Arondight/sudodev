@@ -29,6 +29,12 @@
 #include "readfile.h"
 #include "config.h"
 
+int
+cmpStr (const void * const a, const void * const b)
+{
+  return strcmp ((char *)a, (char *)b);
+}
+
 /* ========================================================================== *
  * Discern if string is a UUID (or a serial number for NTFS/(ex)?fat.*)
  * ========================================================================== */
@@ -192,7 +198,11 @@ profileAddItem (const char * const item)
     }
 
   len = strlen (item);
-  line = (char *)malloc (len + 2);
+  if (!(line = (char *)malloc (len + 2)))
+    {
+      say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+      abort ();
+    }
   memset (line, 0, len + 2);
   snprintf (line, len + 2, "%s\n", item);
 
@@ -210,7 +220,11 @@ profileAddItem (const char * const item)
   list[len + 1] = NULL;
 
   /* Sort and write */
-  sortList (list, len + 1);
+  if (-1 == msort (list, len + 1, sizeof (char *), cmpStr))
+    {
+      say (mode, MSG_E, "msort failed\n");
+      return -1;
+    }
 
   if (-1 == profileOverwrite (list))
     {
@@ -270,7 +284,11 @@ profileDelItem (const char * const pattern)
 
   /* Output list, have enough length fill with NULL */
   for (len = 0; list[len]; ++len);
-  out = (char **)malloc ((len + 1) * sizeof (char *));
+  if (!(out = (char **)malloc ((len + 1) * sizeof (char *))))
+    {
+      say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+      abort ();
+    }
   memset (out, 0, (len + 1) * sizeof (char *));
 
   if ((status = regcomp (&regex, pattern, REG_EXTENDED)) < 0)
@@ -294,7 +312,11 @@ profileDelItem (const char * const pattern)
 
   /* Sort and write */
   for (len = 0; out[len]; ++len);
-  sortList (out, len);
+  if (-1 == msort (out, len, sizeof (char *), cmpStr))
+    {
+      say (mode, MSG_E, "msort failed\n");
+      return -1;
+    }
 
   if (-1 == profileOverwrite (out))
     {

@@ -23,10 +23,11 @@
 #include "find.h"
 #include "readfile.h"
 #include "say.h"
+#include "sort.h"
 #include "config.h"
 
 int
-cmp (const void * const a, const void * const b)
+cmpID (const void * const a, const void * const b)
 {
   return *(int *)a - *(int *)b;
 }
@@ -77,7 +78,12 @@ addGroup (const char * const group)
 
   /* Get group id > 999 */
   size = 1 << 10;
-  ids = (int *)malloc (size * sizeof (int *));
+  if (!(ids = (int *)malloc (size * sizeof (int *))))
+    {
+      say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+      abort ();
+    }
+
   for (index = 0, index2 = 0; list[index]; ++index)
     {
       id = strtok (list[index], sep);
@@ -102,7 +108,11 @@ addGroup (const char * const group)
 
   if (index2 > 1)
     {
-      qsort (ids, index2, sizeof (int), cmp);
+      if (-1 == msort (ids, index2, sizeof (int), cmpID))
+        {
+          say (mode, MSG_E, "msort failed\n");
+          return -1;
+        }
     }
 
   /* Get a new group id */

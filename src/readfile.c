@@ -53,10 +53,18 @@ readfile (const char * const path, char ***list)
   /* Read into a tmp */
   size = 1 << 16;
   begin = 0;
-  in = (char *)malloc (size);
+  if (!(in = (char *)malloc (size)))
+    {
+      say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+      abort ();
+    }
   size = fread (in, sizeof (char), size, fd);
   end = size;
-  tmp = (char *)malloc (size);
+  if (!(tmp = (char *)malloc (size)))
+    {
+      say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+      abort ();
+    }
   while (0 < size)
     {
       memcpy (&tmp[begin], in, size);
@@ -80,7 +88,11 @@ readfile (const char * const path, char ***list)
   begin = 0;
   count = 0;
   no = 1 << 10;
-  split = (char **)malloc (no * sizeof (char *));
+  if (!(split = (char **)malloc (no * sizeof (char *))))
+    {
+      say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+      abort ();
+    }
   memset (&split[count], 0, no - count);
   for (end = 0; end < size; ++end)
     {
@@ -95,7 +107,11 @@ readfile (const char * const path, char ***list)
             }
 
           /* 2: '\n'+'\0' */
-          split[count] = (char *)malloc (end - begin + 2);
+          if (!(split[count] = (char *)malloc (end - begin + 2)))
+            {
+              say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+              abort ();
+            }
           memcpy (split[count], &tmp[begin], end - begin + 1);
           split[count][end - begin + 1] = 0;
           chomp (split[count]);

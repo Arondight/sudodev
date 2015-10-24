@@ -9,6 +9,7 @@ add_executable (
   lockfile.c
   readfile.c
   say.c
+  sort.c
   sudoers.c
 )
 

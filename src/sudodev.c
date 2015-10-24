@@ -28,12 +28,30 @@
 #include <sys/param.h>
 #include "devs.h"
 #include "say.h"
+#include "sort.h"
 #include "find.h"
 #include "readfile.h"
 #include "profile.h"
 #include "config.h"
 
+#define SHORTUUIDLEN (8)
+#define UNKNOWNSTR ("Unknown")
+#define UNKNOWNSTRLEN (7)
+
+typedef struct device
+{
+  char name[MAXPATHLEN];
+  const char *uuid;
+} device_t;
+
+device_t **devices = NULL;
 saymode_t mode;
+
+int
+cmpDeviceName (const void * const a, const void * const b)
+{
+  return strcmp ((*(device_t **)a)->name, (*(device_t **)b)->name);
+}
 
 /* ========================================================================== *
  * Show usage
@@ -142,10 +160,10 @@ reload (void)
 int
 add (void)
 {
-  int (*map)[2];
   char **list;
-  char path[MAXPATHLEN], dev[MAXPATHLEN];
-  char buff[1 << 10];
+  char path[MAXPATHLEN];
+  char buff[MAXPATHLEN];
+  int devicesLen;
   int index, count;
   int no;
   int status, error;
@@ -164,9 +182,14 @@ add (void)
     }
 
   for (index = 0; list[index]; ++index);
-  ++index;
-  map = (int (*)[2])malloc (index * 2 * sizeof (int));
-  memset (map, 0, index * 2 * sizeof (int));
+  devicesLen = index;
+
+  if (!(devices = (device_t **)malloc ((devicesLen + 1) * sizeof (device_t *))))
+    {
+      say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+      abort ();
+    }
+  memset (devices, 0, (devicesLen + 1) * sizeof (device_t *));
 
   for (index = 0, count = 0; list[index]; ++index)
     {
@@ -177,16 +200,41 @@ add (void)
           continue;
         }
 
-      if (-1 == readlink (path, dev, MAXPATHLEN - 1))
+      if (-1 == readlink (path, buff, MAXPATHLEN - 1))
         {
           continue;
         }
 
+      if (!(devices[count] = (device_t *)malloc (sizeof (device_t))))
+        {
+          say (mode, MSG_E, "malloc failed\n", strerror (errno));
+          abort ();
+        }
+
+      strncpy (devices[count]->name, basename (buff), MAXPATHLEN - 1);
+      devices[count]->uuid = list[index];
       ++count;
-      map[count][0] = count;
-      map[count][1] = index;
-      say (mode, MSG_I,
-           "[%3d]  %s\t->  %s\n", count, basename (dev), list[index]);
+    }
+
+  devicesLen = count;
+
+  if (-1 == msort (devices, devicesLen, sizeof (device_t *), cmpDeviceName))
+    {
+      say (mode, MSG_E, "msort failed\n");
+      return -1;
+    }
+
+  for (index = 0; devices[index]; ++index)
+    {
+      say (mode, MSG_I, "[%3d]  %s\n", index + 1, devices[index]->name);
+    }
+
+  count = index;
+
+  if (count < 1)
+    {
+      say (mode, MSG_W, "No available device found\n");
+      return 1;
     }
 
   while (1)
@@ -213,15 +261,13 @@ add (void)
           continue;
         }
 
-      no = map[no][1];
-
       break;
     }
 
   error = 0;
 
   say (mode, MSG_I, "adding device...");
-  if (-1 == profileAddItem (list[no]))
+  if (-1 == profileAddItem (devices[no - 1]->uuid))
     {
       say (mode, MSG_I, "failed\n");
       error = 1;
@@ -247,8 +293,13 @@ CLEAN:
     }
   free (list);
   list = NULL;
-  free (map);
-  map = NULL;
+  /* No need to free devices[index]->uuid, we free it before */
+  for (index = 0; devices[index]; ++index)
+    {
+      free (devices[index]);
+    }
+  free (devices);
+  devices = NULL;
 
   return error ? -1 : 1;
 }
@@ -260,11 +311,13 @@ int
 del (void)
 {
   char **list;
-  char path[MAXPATHLEN], dev[MAXPATHLEN];
-  char buff[1 << 10];
+  char path[MAXPATHLEN];
+  char buff[MAXPATHLEN];
+  int devicesLen;
   int no;
   int index;
   int status, error;
+  int unknownDev;
   const char interface[] = "/dev/disk/by-uuid";
 
   if (access (PROFILE, 0))
@@ -285,30 +338,77 @@ del (void)
       return 0;
     }
 
+  for (index = 0; list[index]; ++index);
+  devicesLen = index;
+
+  if (!(devices = (device_t **)malloc ((devicesLen + 1) * sizeof (device_t *))))
+    {
+      say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+      abort ();
+    }
+  memset (devices, 0, (devicesLen + 1) * sizeof (device_t *));
+
   for (index = 0; list[index]; ++index)
     {
+      unknownDev = 0;
+
       snprintf (path, MAXPATHLEN - 1, "%s/%s", interface, list[index]);
+
+      if (!(devices[index] = (device_t *)malloc (sizeof (device_t))))
+        {
+          say (mode, MSG_E, "malloc failed\n");
+          abort ();
+        }
 
       if (!access (path, 0))
         {
-          if (-1 == readlink (path, dev, MAXPATHLEN - 1))
+          if (-1 == readlink (path, buff, MAXPATHLEN - 1))
             {
               continue;
             }
-          strcpy (dev, basename (dev));
+          strncpy (devices[index]->name, basename (buff), MAXPATHLEN - 1);
         }
       else
         {
-          strcpy (dev, "unknow");
+          strcpy (devices[index]->name, UNKNOWNSTR);
         }
 
-      say (mode, MSG_I, "[%3d]  %s\t->  %s\n", index + 1, dev, list[index]);
+      devices[index]->uuid = list[index];
+    }
+
+  if (!devices)
+    {
+      error = 0;
+      goto CLEAN;
+    }
+
+  devicesLen = index;
+
+  if (-1 == msort (devices, devicesLen, sizeof (device_t *), cmpDeviceName))
+    {
+      say (mode, MSG_E, "msort failed\n");
+      return -1;
     }
 
   if (!index)
     {
       say (mode, MSG_I, "no available device found\n");
+      error = 0;
       goto CLEAN;
+    }
+
+  for (index = 0; devices[index]; ++index)
+    {
+      say (mode, MSG_I, "[%3d]  %s", index + 1, devices[index]->name);
+      if (!(strncmp (UNKNOWNSTR, devices[index]->name, UNKNOWNSTRLEN)))
+        {
+          strncpy (buff, devices[index]->uuid, 8);
+          say (mode, MSG_I, "\t->  %s...\n", buff);
+        }
+      else
+        {
+          say (mode, MSG_I, "\n");
+        }
     }
 
    while (1)
@@ -335,13 +435,13 @@ del (void)
           continue;
         }
 
-      --no;
-
       break;
     }
 
+  error = 0;
+
   say (mode, MSG_I, "deleting device...");
-  if (-1 == profileDelItem (list[no]))
+  if (-1 == profileDelItem (devices[no - 1]->uuid))
     {
       say (mode, MSG_I, "failed\n");
       error = 1;
@@ -367,6 +467,12 @@ CLEAN:
     }
   free (list);
   list = NULL;
+  for (index = 0; devices[index]; ++index)
+    {
+      free (devices[index]);
+    }
+  free (devices);
+  devices = NULL;
 
   return error ? -1 : 1;
 }
@@ -437,7 +543,7 @@ main (const int argc, const char * const * const argv)
 
   if (-1 == (status = attempt ("^add$", action, add)))
     {
-      say (mode, MSG_E, "attempt failed");
+      say (mode, MSG_E, "attempt failed\n");
       exit (1);
     }
   if (status)
@@ -447,7 +553,7 @@ main (const int argc, const char * const * const argv)
 
   if (-1 == (status = attempt ("^del(ete)?$", action, del)))
     {
-      say (mode, MSG_E, "attempt failed");
+      say (mode, MSG_E, "attempt failed\n");
       exit (1);
     }
   if (status)
