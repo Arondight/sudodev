@@ -68,12 +68,16 @@ find (const char * const path, const char * const pattern)
     }
 
   regfree (&regex);
-  for (index = 0; list[index]; ++index)
+
+  if (list)
     {
-      free (list[index]);
-    }
-  free (list);
-  list = NULL;
+      for (index = 0; list[index]; ++index)
+        {
+          free (list[index]);
+        }
+      free (list);
+      list = NULL;
+  }
 
   return find;
 }

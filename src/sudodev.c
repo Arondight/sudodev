@@ -161,12 +161,14 @@ int
 add (void)
 {
   char **list;
+  char **uuids;
   char path[MAXPATHLEN];
   char buff[MAXPATHLEN];
   int devicesLen;
-  int index, count;
+  int index, index2, count;
   int no;
   int status, error;
+  int next;
   const char interface[] = "/dev/disk/by-uuid";
 
   if (-1 == devs (&list))
@@ -179,6 +181,11 @@ add (void)
     {
       say (mode, MSG_E, "null pointer");
       return -1;
+    }
+
+  if (readfile (PROFILE, &uuids) <= 0)
+    {
+      uuids = NULL;
     }
 
   for (index = 0; list[index]; ++index);
@@ -201,6 +208,24 @@ add (void)
         }
 
       if (-1 == readlink (path, buff, MAXPATHLEN - 1))
+        {
+          continue;
+        }
+
+      next = 0;
+      if (uuids)
+        {
+          for (index2 = 0; uuids[index2]; ++index2)
+            {
+              if (!strcmp (list[index], uuids[index2]))
+                {
+                  next = 1;
+                  break;
+                }
+            }
+        }
+
+      if (next)
         {
           continue;
         }
@@ -287,19 +312,36 @@ add (void)
   say (mode, MSG_I, "done\n");
 
 CLEAN:
-  for (index = 0; list[index]; ++index)
+  if (list)
     {
-      free (list[index]);
+      for (index = 0; list[index]; ++index)
+        {
+          free (list[index]);
+        }
+      free (list);
+      list = NULL;
     }
-  free (list);
-  list = NULL;
+
+  if (uuids)
+    {
+      for (index = 0; uuids[index]; ++index)
+        {
+          free (uuids[index]);
+        }
+      free (uuids);
+      uuids = NULL;
+    }
+
   /* No need to free devices[index]->uuid, we free it before */
-  for (index = 0; devices[index]; ++index)
+  if (devices)
     {
-      free (devices[index]);
+      for (index = 0; devices[index]; ++index)
+        {
+          free (devices[index]);
+        }
+      free (devices);
+      devices = NULL;
     }
-  free (devices);
-  devices = NULL;
 
   return error ? -1 : 1;
 }
@@ -461,18 +503,25 @@ del (void)
   say (mode, MSG_I, "done\n");
 
 CLEAN:
-  for (index = 0; list[index]; ++index)
+  if (list)
     {
-      free (list[index]);
+      for (index = 0; list[index]; ++index)
+        {
+          free (list[index]);
+        }
+      free (list);
+      list = NULL;
     }
-  free (list);
-  list = NULL;
-  for (index = 0; devices[index]; ++index)
+
+  if (devices)
     {
-      free (devices[index]);
+      for (index = 0; devices[index]; ++index)
+        {
+          free (devices[index]);
+        }
+      free (devices);
+      devices = NULL;
     }
-  free (devices);
-  devices = NULL;
 
   return error ? -1 : 1;
 }

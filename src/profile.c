@@ -233,13 +233,16 @@ profileAddItem (const char * const item)
     }
 
   /* Should not free line here - will cause a double free error */
-  for (index = 0; list[index]; ++index)
+  if (list)
     {
-      free (list[index]);
+      for (index = 0; list[index]; ++index)
+        {
+          free (list[index]);
+        }
+      free (list);
+      list = NULL;
+      line = NULL;
     }
-  free (list);
-  list = NULL;
-  line = NULL;
 
   return 1;
 }
@@ -327,12 +330,16 @@ profileDelItem (const char * const pattern)
   regfree (&regex);
 
   /* Should not free out here - will cause double free errors */
-  for (index = 0; list[index]; ++index)
+  if (list)
     {
-      free (list[index]);
+      for (index = 0; list[index]; ++index)
+        {
+          free (list[index]);
+        }
+      free (list);
+      list = NULL;
+      out = NULL;
     }
-  free (list);
-  list = NULL;
 
   return 1;
 }

@@ -67,12 +67,15 @@ destoryList (char *** const addr)
     }
 
   /* Free *addr */
-  for (index = 0; *addr && (*addr)[index]; ++index)
+  if (*addr)
     {
-      free ((*addr)[index]);
+      for (index = 0; (*addr)[index]; ++index)
+        {
+          free ((*addr)[index]);
+        }
+      free (*addr);
+      *addr = NULL;
     }
-  free (*addr);
-  *addr = NULL;
 
   return 1;
 }

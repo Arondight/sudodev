@@ -165,12 +165,22 @@ addGroup (const char * const group)
 
   /* Do clean at last */
   fclose (fh);
-  for (index = 0; list[index]; ++index)
+
+  if (list)
     {
-      free (list[index]);
+      for (index = 0; list[index]; ++index)
+        {
+          free (list[index]);
+        }
+      free (list);
+      list = NULL;
     }
-  free (list);
-  free (ids);
+
+  if (ids)
+    {
+      free (ids);
+      ids = NULL;
+    }
 
   return 1;
 }

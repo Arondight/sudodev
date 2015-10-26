@@ -79,7 +79,11 @@ merge (void * const _p1, const size_t p1Len,
   /* Copy tmp to p1 */
   memcpy (p1, tmp, (p1Len + p2Len) * size);
 
-  free (tmp);
+  if (tmp)
+    {
+      free (tmp);
+      tmp = NULL;
+    }
 
   return 1;
 }
