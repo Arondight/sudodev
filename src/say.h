@@ -19,13 +19,14 @@
 #ifndef __SAY_H__
 #define __SAY_H__
 
-typedef enum mode
+typedef enum saymode
 {
-  MODE_FILE = 0,
+  MODE_UNKNOWN = 0,
+  MODE_FILE,
   MODE_OUT,
 } saymode_t;
 
-typedef enum level
+typedef enum saylevel
 {
   MSG_I = 0,
   MSG_W,

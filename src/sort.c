@@ -26,8 +26,8 @@
  * Merge 2 part
  * ========================================================================== */
 int
-merge (void * const _p1, const size_t p1Len,
-       void * const _p2, const size_t p2Len,
+merge (void * const part1, const size_t p1Len,
+       const void * const part2, const size_t p2Len,
        const size_t size,
        int (* const cmp) (const void * const, const void * const))
 {
@@ -35,8 +35,8 @@ merge (void * const _p1, const size_t p1Len,
   char *p1, *p2;
   size_t index, index2, index3;
 
-  p1 = (char *)_p1;
-  p2 = (char *)_p2;
+  p1 = (char *)part1;
+  p2 = (char *)part2;
 
   if (!(tmp = (char *)malloc ((p1Len + p2Len) * size)))
     {

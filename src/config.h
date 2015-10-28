@@ -26,5 +26,20 @@
 #define LOCKFILE ("/var/run/sudodevd.pid")
 #define PROFILE ("/etc/sudodev.conf")
 
+/* For compatibility with Upstart, here can not use thread to deal with signal,
+ * we have to use an ugly way to handle signals without to create a thread
+ * See http://segmentfault.com/q/1010000003845978 { */
+#define MULTITHREAD_DAEMON (0)
+/* } */
+
+/* There is 2 mode of say (): thread safe or not.
+ * First mode always bring right result, but this has a low efficiency,
+ * and a none thread safe mode will faster, but will failed if you
+ * create multiple threads and reopen fd 0, 1 or 2 in a thread.
+ * Default is none thread safe, it is ok, I will not reopen fd 0, 1 and 2
+ * in any possible thread. { */
+#define THREADSAFE_SAY (0)
+/* } */
+
 #endif
 

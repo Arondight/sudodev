@@ -25,6 +25,14 @@
 #include <syslog.h>
 #include <sys/param.h>
 #include "say.h"
+#include "config.h"
+
+/* See config.h { */
+#ifndef THREADSAFE_SAY
+  #define THREADSAFE_SAY (1)
+#endif
+#define THREADSAFE (THREADSAFE_SAY)
+/* } */
 
 /* ========================================================================== *
  * Get write mode for current process
@@ -37,7 +45,7 @@
  * Thus, 0 is standard input, 1 standard output, 2 standard error, and so on.
  * ========================================================================== */
 int
-sayMode (saymode_t * const mode)
+getSayMode (saymode_t * const mode)
 {
   char path[MAXPATHLEN], link[MAXPATHLEN], file[MAXPATHLEN];
   char pid[1 << 10];
@@ -72,8 +80,7 @@ sayMode (saymode_t * const mode)
       if (!strcmp (null, file))
         {
           /* If any file descriptor of 0, 1, 2 point to /dev/null,
-           * treat this as a daemon, invoke syslog to write line
-           */
+           * treat this as a daemon, invoke syslog to write line */
           *mode = MODE_FILE;
           return 1;
         }
@@ -82,6 +89,38 @@ sayMode (saymode_t * const mode)
   *mode = MODE_OUT;
 
   return 1;
+}
+
+/* ========================================================================== *
+ * Get write mode
+ * ========================================================================== */
+int
+sayMode (saymode_t * const mode)
+{
+  static saymode_t oneMode = MODE_UNKNOWN;
+  static int hasSet = 0;
+  int status;
+
+  status = 1;
+
+  #if THREADSAFE
+    {
+      /* Useless, to ignore warning from syntastic plugin of vim { */
+      status = oneMode && hasSet;
+      /* } */
+      status = getSayMode (mode);
+    }
+  #else
+    {
+      if (1 != hasSet)
+        {
+          hasSet = status = getSayMode (&oneMode);
+        }
+      *mode = oneMode;
+    }
+  #endif
+
+  return status;
 }
 
 /* ========================================================================== *

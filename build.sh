@@ -9,7 +9,7 @@ builddir=$curdir/build
 function build {
   mkdir -p $builddir
   cd $builddir
-  cmake ..
+  cmake -DCMAKE_BUILD_TYPE=Release ..
   make -j4
 }
 

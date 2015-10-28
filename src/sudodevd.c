@@ -38,12 +38,12 @@
 #include "readfile.h"
 #include "config.h"
 
-/* For compatibility with Upstart, here can not use thread to deal with signal,
- * we have to use an ugly way to handle signals without to create a thread
- * See http://segmentfault.com/q/1010000003845978 { *
-#define MULTITHREAD (1)
-* } */
-#define MULTITHREAD (0)
+/* See config.h  { */
+#ifndef MULTITHREAD_DAEMON
+  #define MULTITHREAD_DAEMON (0)
+#endif
+#define MULTITHREAD (MULTITHREAD_DAEMON)
+/* } */
 
 #define SLEEPTIME (2)     /* Time to sleep at eventloop */
 
@@ -157,7 +157,7 @@ actionBinding (const int signo, void (* const handler) (int))
 void
 sigtermHandler (const int signo)
 {
-  /* Useless, to ignore warning from syntastic plugin of vim  { */
+  /* Useless, to ignore warning from syntastic plugin of vim { */
   int trash;
   trash = signo;
   /* } */
@@ -176,7 +176,7 @@ sigtermHandler (const int signo)
 void
 sighupHandler (const int signo)
 {
-  /* Useless, to ignore warning from syntastic plugin of vim  { */
+  /* Useless, to ignore warning from syntastic plugin of vim { */
   int trash;
   trash = signo;
   /* } */
@@ -222,7 +222,7 @@ sighandler (void *arg)
 {
   int sig;
 
-  /* Useless, to ignore warning from syntastic plugin of vim  { */
+  /* Useless, to ignore warning from syntastic plugin of vim { */
   arg = (void *)arg;
   /* } */
 
@@ -421,7 +421,6 @@ main (const int argc, const char * const * const argv)
       exit (1);
     }
 
-  /* See line 39 to 45 */
   #if MULTITHREAD
     {
       pthread_t tid;
