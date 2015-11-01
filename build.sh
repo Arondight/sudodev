@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# This to build project (but do not install)
+# This to build project
 # ==============================================================================
 
 curdir=$(dirname $(readlink -f $0))

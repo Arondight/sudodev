@@ -71,9 +71,19 @@ hasLockfile (void)
       return 1;   /* A sudodevd is running */
     }
 
-  ftruncate (fd, 0);
+  if (-1 == ftruncate (fd, 0))
+    {
+      say (mode, MSG_E, "ftruncate failed: %s", strerror (errno));
+      // Do nothing but show error message
+    }
+
+  /* Write pid to LOCKFILE */
   sprintf (pid, "%d", getpid ());
-  write (fd, pid, strlen (pid) + 1);
+  if (-1 == write (fd, pid, strlen (pid) + 1))
+    {
+      say (mode, MSG_E, "write failed: %s\n", strerror (errno));
+      return -1;
+    }
 
   return 0;
 }

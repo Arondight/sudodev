@@ -62,6 +62,8 @@ usage (const char * const string)
   int line;
   const char * const text[] =
     {
+      "This is sudodev, version ", VERSION, "\n",
+      "\n",
       "Usage: sudodev [add|del]\n",
       "\n",
       "  add:\tadd a device for none-password sudo\n",
@@ -265,7 +267,12 @@ add (void)
   while (1)
     {
       say (mode, MSG_I, "Choose a device (q to quit): ");
-      fgets (buff, (1 << 10) - 1, stdin);
+
+      if (!fgets (buff, (1 << 10) - 1, stdin))
+        {
+          say (mode, MSG_E, "fgets failed: %s\n", strerror (errno));
+          return -1;
+        }
       buff[strlen (buff) - 1] = 0;
 
       if ('q' == *buff)
@@ -442,6 +449,7 @@ del (void)
   for (index = 0; devices[index]; ++index)
     {
       say (mode, MSG_I, "[%3d]  %s", index + 1, devices[index]->name);
+
       if (!(strncmp (UNKNOWNSTR, devices[index]->name, UNKNOWNSTRLEN)))
         {
           strncpy (buff, devices[index]->uuid, 8);
@@ -456,7 +464,11 @@ del (void)
    while (1)
     {
       say (mode, MSG_I, "Choose a device (q to quit): ");
-      fgets (buff, (1 << 10) - 1, stdin);
+      if (!fgets (buff, (1 << 10) - 1, stdin))
+        {
+          say (mode, MSG_E, "fgets failed: %s\n", strerror (errno));
+          return -1;
+        }
       buff[strlen (buff) - 1] = 0;
 
       if ('q' == *buff)

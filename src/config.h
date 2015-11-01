@@ -19,6 +19,8 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#define VERSION ("0.10")
+
 #define SUDODEV_GROUP ("sudodev")
 #define SUDOERS ("/etc/sudoers")
 #define SUDO_CONF ("/etc/sudoers.d/sudodev")

@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <errno.h>
 #include <sys/param.h>
 #include "say.h"
 #include "config.h"
@@ -76,7 +77,12 @@ getSayMode (saymode_t * const mode)
     {
       memset (file, 0, sizeof (file));
       snprintf (link, MAXPATHLEN - len - 1, "%s/%d", path, index);
-      readlink (link, file, MAXPATHLEN - 1);
+      if (-1 == readlink (link, file, MAXPATHLEN - 1))
+        {
+          fprintf (stderr, "readlink failed: %s\n", strerror (errno));
+          break;
+        }
+
       if (!strcmp (null, file))
         {
           /* If any file descriptor of 0, 1, 2 point to /dev/null,

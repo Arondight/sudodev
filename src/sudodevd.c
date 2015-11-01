@@ -417,7 +417,7 @@ main (const int argc, const char * const * const argv)
     }
   if (hasLock)
     {
-      say (mode, MSG_E, "sudodevd is already running\n");
+      say (mode, MSG_E, "sudodevd is already running, quit\n");
       exit (1);
     }
 
@@ -484,6 +484,7 @@ main (const int argc, const char * const * const argv)
     }
 
   /* Loop for event */
+  say (mode, MSG_I, "starting sudodevd, version %s\n", VERSION);
   eventloop ();
 
   say (mode, MSG_E, "Should never reach here, abort\n");
