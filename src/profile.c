@@ -107,7 +107,7 @@ profileMode (void)
 
   if ((statbuf.st_mode & ~0600) || (0600 != (statbuf.st_mode & 0600)))
     {
-      if (chmod (PROFILE, 0600))
+      if (chmod (PROFILE, PROFILE_MODE))
         {
           say (mode, MSG_E, "chmod failed: %s\n", strerror (errno));
           return -1;

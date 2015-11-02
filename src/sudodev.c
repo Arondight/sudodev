@@ -44,8 +44,8 @@ typedef struct device
   const char *uuid;
 } device_t;
 
-device_t **devices = NULL;
-saymode_t mode;
+static device_t **devices = NULL;
+static saymode_t mode;
 
 int
 cmpDeviceName (const void * const a, const void * const b)
@@ -366,7 +366,6 @@ del (void)
   int no;
   int index;
   int status, error;
-  int unknownDev;
   const char interface[] = "/dev/disk/by-uuid";
 
   if (access (PROFILE, 0))
@@ -399,8 +398,6 @@ del (void)
 
   for (index = 0; list[index]; ++index)
     {
-      unknownDev = 0;
-
       snprintf (path, MAXPATHLEN - 1, "%s/%s", interface, list[index]);
 
       if (!(devices[index] = (device_t *)malloc (sizeof (device_t))))

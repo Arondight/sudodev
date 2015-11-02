@@ -45,13 +45,13 @@
 #define MULTITHREAD (MULTITHREAD_DAEMON)
 /* } */
 
-#define SLEEPTIME (2)     /* Time to sleep at eventloop */
+#define SLEEPTIME (2)   /* Time to sleep at eventloop */
 
-char **sudodevs = NULL;   /* UUID list of sudo device */
-char **sysdevs = NULL;    /* UUID list of all devices */
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-sigset_t mask;
-saymode_t mode;
+static char **sudodevs = NULL;  /* UUID list of sudo device */
+static char **sysdevs = NULL;   /* UUID list of all devices */
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static sigset_t mask;
+static saymode_t mode;
 
 /* ========================================================================== *
  * Destroy a string list
@@ -158,8 +158,8 @@ void
 sigtermHandler (const int signo)
 {
   /* Useless, to ignore warning from syntastic plugin of vim { */
-  int trash;
-  trash = signo;
+  int trash = signo;
+  ++trash;
   /* } */
 
   say (mode, MSG_I, "SIGTERM is received, quit\n");
@@ -177,8 +177,8 @@ void
 sighupHandler (const int signo)
 {
   /* Useless, to ignore warning from syntastic plugin of vim { */
-  int trash;
-  trash = signo;
+  int trash = signo;
+  ++trash;
   /* } */
 
   say (mode, MSG_I, "SIGHUP is received, reload config\n");
@@ -296,7 +296,7 @@ inWork (void)
     }
 
   fd = fileno (fh);
-  fchmod (fd, 0440);
+  fchmod (fd, SUDO_CONF_MODE);
   if (fwrite (rule, sizeof (char), strlen (rule), fh) < strlen (rule))
     {
       say (mode, MSG_E, "fopen failed: %s\n", strerror (errno));
@@ -401,7 +401,7 @@ main (const int argc, const char * const * const argv)
       ident = name;
     }
 
-  if (-1 == daemonize (name))
+  if (-1 == daemonize (ident))
     {
       fprintf (stderr, "can not run as a daemon, quit");
       exit (1);

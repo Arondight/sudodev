@@ -19,11 +19,49 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <dirent.h>
 #include <errno.h>
+#include <libgen.h>
 #include <sys/types.h>
+#include <sys/param.h>
 #include "chomp.h"
 #include "say.h"
+#include "find.h"
+#include "config.h"
+
+int
+isLocalDev (const char * const devPath)
+{
+  char *pattern;
+  char buff[MAXPATHLEN];
+  saymode_t mode;
+  int index;
+  int status;
+
+  sayMode (&mode);
+
+  strncpy (buff, devPath, MAXPATHLEN - 1);
+  pattern = basename (buff);
+
+  for (index = strlen (pattern) - 1; index > -1; --index)
+    {
+      if (pattern[index] >= '0' && pattern[index] < '9' + 1)
+        {
+          pattern[index] = 0;
+        }
+    }
+
+  /* TODO: Use a faster and none-threadsafe way to search FSTAB { */
+  if (-1 == (status = find (FSTAB, pattern)))
+    {
+      say (mode, MSG_E, "find failed\n");
+      return -1;
+    }
+
+  return status;
+  /* } */
+}
 
 int
 devs (char ***addr)
@@ -31,6 +69,7 @@ devs (char ***addr)
   DIR *dh;
   struct dirent *dir;
   char **uuids;
+  char buff[MAXPATHLEN], dev[MAXPATHLEN];
   size_t len;
   saymode_t mode;
   int no, count;
@@ -64,6 +103,17 @@ devs (char ***addr)
       if (DT_LNK != dir->d_type)
         {
           --count;
+          continue;
+        }
+
+      snprintf (dev, MAXPATHLEN - 1,"%s/%s", interface, dir->d_name);
+      if (-1 == readlink (dev, buff, MAXPATHLEN - 1))
+        {
+          continue;
+        }
+
+      if (isLocalDev (buff))
+        {
           continue;
         }
 

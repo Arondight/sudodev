@@ -12,7 +12,6 @@ add_executable (
   sort.c
   sudoers.c
 )
-
 target_link_libraries (sudodevd pthread)
 
 add_executable (
@@ -26,6 +25,5 @@ add_executable (
   say.c
   sort.c
 )
-
 target_link_libraries (sudodev)
 
