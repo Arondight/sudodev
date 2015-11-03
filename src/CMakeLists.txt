@@ -25,5 +25,5 @@ add_executable (
   say.c
   sort.c
 )
-target_link_libraries (sudodev)
+target_link_libraries (sudodev pthread)
 

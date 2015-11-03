@@ -438,7 +438,7 @@ del (void)
 
   if (!index)
     {
-      say (mode, MSG_I, "no available device found\n");
+      say (mode, MSG_I, "No available device found\n");
       error = 0;
       goto CLEAN;
     }

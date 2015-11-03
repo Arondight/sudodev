@@ -22,21 +22,29 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <errno.h>
+#include <pthread.h>
 #include <libgen.h>
 #include <sys/types.h>
 #include <sys/param.h>
 #include "chomp.h"
 #include "say.h"
 #include "find.h"
+#include "readfile.h"
 #include "config.h"
 
+static char **list = NULL;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+/* ========================================================================== *
+ * Determine whether a devPath is a local device
+ * ========================================================================== */
 int
 isLocalDev (const char * const devPath)
 {
   char *pattern;
   char buff[MAXPATHLEN];
   saymode_t mode;
-  int index;
+  int index, index2;
   int status;
 
   sayMode (&mode);
@@ -44,6 +52,7 @@ isLocalDev (const char * const devPath)
   strncpy (buff, devPath, MAXPATHLEN - 1);
   pattern = basename (buff);
 
+  /* Remove partition number */
   for (index = strlen (pattern) - 1; index > -1; --index)
     {
       if (pattern[index] >= '0' && pattern[index] < '9' + 1)
@@ -52,7 +61,7 @@ isLocalDev (const char * const devPath)
         }
     }
 
-  /* TODO: Use a faster and none-threadsafe way to search FSTAB { */
+  /* TODO: Use a faster way to search FSTAB { *
   if (-1 == (status = find (FSTAB, pattern)))
     {
       say (mode, MSG_E, "find failed\n");
@@ -60,7 +69,46 @@ isLocalDev (const char * const devPath)
     }
 
   return status;
-  /* } */
+  * } */
+
+  if (!list)
+    {
+      pthread_mutex_lock (&mutex);
+
+      if (-1 == readfile (FSTAB, &list) || !list)
+        {
+          say (mode, MSG_E, "readfile failed\n");
+          return -1;
+        }
+
+      /* Remove all comments */
+      for (index = 0; list[index]; ++index)
+        {
+          for (index2 = 0;
+               list[index][index2] && '#' != list[index][index2];
+               ++index2);
+          list[index][index2] = 0;
+        }
+
+      pthread_mutex_unlock (&mutex);
+    }
+
+  if (!list)
+    {
+      return -1;
+    }
+
+  status = 0;
+  for (index = 0; list[index]; ++index)
+    {
+      if (strstr (list[index], pattern))
+        {
+          status = 1;
+          break;
+        }
+    }
+
+  return status;
 }
 
 int
@@ -139,9 +187,20 @@ devs (char ***addr)
       uuids[no] = NULL;
     }
 
-  closedir (dh);
-
   *addr = uuids;
+
+  closedir (dh);
+  pthread_mutex_destroy (&mutex);
+
+  if (list)
+    {
+      for (count = 0; list[count]; ++count)
+        {
+          free (list[count]);
+        }
+      free (list);
+      list = NULL;
+    }
 
   return 1;
 }
