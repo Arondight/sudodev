@@ -8,7 +8,7 @@
 
 3. Be a member of "sudodev" group
 
-    After run sudodevd(do this via service manager such as systemctl),
+    After run sudodevd (do this via service manager such as systemctl),
     the "sudodev" group will be create, you should add to this group
     to make sudodevd take effect.
 

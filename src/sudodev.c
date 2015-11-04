@@ -370,7 +370,7 @@ del (void)
 
   if (access (PROFILE, 0))
     {
-      say (mode, MSG_E, "Config file is not exist, run sudodev add first.\n");
+      say (mode, MSG_E, "Config file not exist, run \"sudodev add\" first.\n");
       return 0;
     }
 

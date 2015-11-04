@@ -19,8 +19,9 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-#define VERSION ("0.10")
+#define VERSION ("0.20")
 
+/* Never modify this { */
 #define SUDODEV_GROUP ("sudodev")
 #define SUDOERS ("/etc/sudoers")
 #define SUDO_CONF ("/etc/sudoers.d/sudodev")
@@ -30,6 +31,7 @@
 #define FSTAB ("/etc/fstab")
 #define SUDO_CONF_MODE (0400)
 #define PROFILE_MODE (0600)
+/* } */
 
 /* For compatibility with Upstart, here can not use thread to deal with signal,
  * we have to use an ugly way to handle signals without to create a thread

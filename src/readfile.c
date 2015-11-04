@@ -40,7 +40,9 @@ readfile (const char * const path, char ***list)
   if (access (path, 0))
     {
       *list = split = NULL;
+      /* Hide error message here { *
       say (mode, MSG_E, "access failed: %s\n", strerror (errno));
+      * } */
       return 0;     /* No need to return -1 */
     }
 

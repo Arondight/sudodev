@@ -37,18 +37,18 @@ start it via your sevice manager such as systemctl and initctl (for earlier,
 
 # SAFETY
 
-Do not worry, this is safe in most cases.
+Do not worry, this is safe.
 
-For further, you can delete rule for your account in `/etc/sudoers` after create
+For further, you can remove rule for your account in `/etc/sudoers` after create
 a "special device", then only people with the following two cases can get root
 privilege:
 
 1. He know root password (if your root account has a password)
-2. He have one of these special devices
++ He has one of these special devices
 
 # NOTICE
 
-Do not repart your device, or UUID will changed, and this device
+**Do not repart your device**, or UUID will changed, and this device
 will lose effectiveness.
 
 # COPYRIGHT

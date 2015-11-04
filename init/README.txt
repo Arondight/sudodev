@@ -1,10 +1,10 @@
 This directory is init scripts for systemd, Upstart, SysVinit and BSD init.
 
-CMakelist.txt will not deal this directory, because there is no common way to
-indentify which init program you are using (not only installed), no matter via
+CMake will not deal this directory, because there is no common way to indentify
+which init program you are using (not only installed), no matter via
 "/proc/1/exe", "/dev/initctl" or other way. So you should do that manually.
 
-Copy corresponding one to target directory:
+You should copy corresponding one to target directory:
 
   ---------------------------------------------------------------------------
   | init program    | script file                 | target directory        |
@@ -18,29 +18,58 @@ Copy corresponding one to target directory:
 If you are new to linux world, here is what you should do accroding to your
 init program is:
 
-  1. systemd
+  1. systemd (for example, Arch Linux, Ubuntu 14.X+, Debian 6.0+, openSUSE 11.4+
+              Fedora 16+, CentOS 6.X+ and Red Hat Enterprise Linux 6.X+)
 
-    sudo systemctl daemon-reload
-    sudo systemctl enable sudodevd
-    sudo systemctl start sudodevd
+    Reload daemons config:
+      sudo systemctl daemon-reload
 
-  2. Upstart
+    Set start targets:
+      sudo systemctl enable sudodevd
 
-    sudo initctl reload-configuration
-    sudo initctl start sudodevd
+    Start it now:
+      sudo systemctl start sudodevd
 
-  3. SysVinit
+  2. Upstart (for example, ealier versions of Ubuntu and Debian)
 
-    echo -n /etc/rc{2,3,4,5}.d/S60sudodevd | \
-      xargs -d ' ' -I{} sudo ln -s /etc/init.d/sudodevd {}
-    echo -n /etc/rc{0,1,6}.d/K60sudodevd | \
-      xargs -d ' ' -I{} sudo ln -s /etc/init.d/sudodevd {}
-    sudo chmod 755 /etc/init.d/sudodevd
-    sudo /etc/init.d/sudodevd start
+    Reload daemons config:
+      sudo initctl reload-configuration
 
-  4. BSD init
+    Start it now:
+      sudo initctl start sudodevd
 
-    sudo sh -c 'echo sudodevd=YES >> /etc/rc.conf'
-    sudo chmod 755 /etc/rc.d/rc.sudodevd
-    sudo /etc/rc.d/rc.sudodevd start
+    Start/stop runlevels has been set on sudodevd.conf, it is no need to set
+    autostart manually.
+
+  3. SysVinit (for example, ealier versions of Fedora, CentOS and RHEL)
+
+    Set start/stop runlevels:
+      echo -n /etc/rc{2,3,4,5}.d/S60sudodevd | \
+        xargs -d ' ' -I{} sudo ln -s /etc/init.d/sudodevd {}
+      echo -n /etc/rc{0,1,6}.d/K60sudodevd | \
+        xargs -d ' ' -I{} sudo ln -s /etc/init.d/sudodevd {}
+
+    Set to executable:
+      sudo chmod 755 /etc/init.d/sudodevd
+
+    Start it now:
+      sudo /etc/init.d/sudodevd start
+
+  4. BSD init (for exmaple, Slackware Linux)
+
+    For BSD init, it is a bit complicated, you can not config it only by type
+    some conmands. You have to write script in some files manually, and, have to
+    datermind where is sutable to write.
+
+    Set start/stop runlevels:
+      Write the line below to /etc/rc.d/rc.4 and /etc/rc.d/rc.M:
+        [ -x /etc/rc.d/rc.sudodevd ] && /etc/rc.d/rc.sudodevd start
+      Write the line below to /etc/rc.d/rc.0, /etc/rc.d/rc.6 and /etc/rc.d/rc.K:
+        [ -x /etc/rc.d/rc.sudodevd ] && /etc/rc.d/rc.sudodevd stop
+
+    Set to executable:
+      sudo chmod 755 /etc/rc.d/rc.sudodevd
+
+    Start it now:
+      sudo /etc/rc.d/rc.sudodevd start
 

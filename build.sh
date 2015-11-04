@@ -18,6 +18,8 @@ function build {
 function install {
   cd $builddir  \
     && sudo make install -j4
+
+  return $?
 }
 
 build
@@ -25,4 +27,6 @@ build
 if [[ 0 -eq $? && 'install' == $1 ]]; then
   install
 fi
+
+return $?
 
