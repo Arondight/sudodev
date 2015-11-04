@@ -1,11 +1,11 @@
 # NAME
 
-sudodev - Create your special device for a none-password sudo
+sudodev - Create your special devices for sudo privilege without password
 
 # SYNOPSIS
 
-This allows you choose some devices (identify by [UUID][ID_UUID]), when any of
-them connect to your computer, your sudo command no longer need password.
+This allows you to choose some devices (identify by [UUID][ID_UUID]),so that when any of
+them are connected to your computer, your sudo command no longer need password.
 
 [ID_UUID]: https://en.wikipedia.org/w/index.php?title=Universally_unique_identifier "Learn more about UUID"
 
@@ -16,9 +16,9 @@ git clone https://github.com/Arondight/sudodev.git sudodev
 cd sudodev
 ```
 
-See [INSTALL][ID_INSTALL] to install program.
+Goto [INSTALL][ID_INSTALL] for installation instructions.
 
-See [init/README.txt][ID_INIT_README_TXT] to config init script.
+Read [init/README.txt][ID_INIT_README_TXT] for how to configure the inti script.
 
 [ID_INSTALL]: INSTALL "Read INSTALL"
 [ID_INIT_README_TXT]: init/README.txt "Read init/README.txt"
@@ -27,28 +27,28 @@ See [init/README.txt][ID_INIT_README_TXT] to config init script.
 
 1. `sudodev`
 
-    This allows you add or delete device
+    This allows you to add or to delete devices
 
 2. `sudodevd`
 
-    This is the daemon, you should not startup this manually, you had better
+    This is the daemon, you should not start this manually, you are recommanded to 
 start it via your sevice manager such as systemctl and initctl (for earlier,
 `/etc/init.d/sudodevd` for SysVinit and `/etc/rc.d/rc.sudodevd` for BSD init).
 
-# SAFETY
+# SECURITY
 
-Do not worry, this is safe.
+Do not worry, this is secure.
 
-For further, you can remove rule for your account in `/etc/sudoers` after create
-a "special device", then only people with the following two cases can get root
+In addition, you can remove rules for your account from `/etc/sudoers` after creating
+a "special device", so that only people in the following two categories can get root
 privilege:
 
-1. He know root password (if your root account has a password)
+1. He knows root password (if your root account has a password)
 + He has one of these special devices
 
 # NOTICE
 
-**Do not repart your device**, or UUID will changed, and this device
+**Do not repart your device**, or UUID will change, and this device
 will lose effectiveness.
 
 # COPYRIGHT
