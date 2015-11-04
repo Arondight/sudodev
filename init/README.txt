@@ -1,10 +1,10 @@
-This directory is init scripts for systemd, Upstart, SysVinit and BSD init.
+This directory contains init scripts for systemd, Upstart, SysVinit and BSD init.
 
-CMake will not deal this directory, because there is no common way to indentify
+CMake will ignore this directory, because there is no simple way to indentify
 which init program you are using (not only installed), no matter via
-"/proc/1/exe", "/dev/initctl" or other way. So you should do that manually.
+"/proc/1/exe", "/dev/initctl", etc. So you need to do this manually.
 
-You should copy corresponding one to target directory:
+You need to copy corresponding files to target directory:
 
   ---------------------------------------------------------------------------
   | init program    | script file                 | target directory        |
