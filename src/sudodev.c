@@ -56,8 +56,8 @@ cmpDeviceName (const void * const a, const void * const b)
 /* ========================================================================== *
  * Show usage
  * ========================================================================== */
-void
-usage (const char * const string)
+int
+usage (void)
 {
   int line;
   const char * const text[] =
@@ -73,15 +73,12 @@ usage (const char * const string)
       NULL  /* Last element should be NULL */
     };
 
-  if (string)
-    {
-      say (mode, MSG_I, string);
-    }
-
   for (line = 0; text[line]; ++line)
     {
       say (mode, MSG_I, text[line]);
     }
+
+  return 1;
 }
 
 /* ========================================================================== *
@@ -445,7 +442,7 @@ del (void)
 
   for (index = 0; devices[index]; ++index)
     {
-      say (mode, MSG_I, "[%3d]  %s\n", index + 1, devices[index]->name);
+      say (mode, MSG_I, "[%3d]  %s", index + 1, devices[index]->name);
 
       if (!(strncmp (UNKNOWNSTR, devices[index]->name, UNKNOWNSTRLEN)))
         {
@@ -591,7 +588,7 @@ main (const int argc, const char * const * const argv)
 
   if (argc != 2)
     {
-      usage (NULL);
+      usage ();
       exit (1);
     }
 
@@ -611,7 +608,7 @@ main (const int argc, const char * const * const argv)
     }
   if (status)
     {
-      exit (0);
+      goto CLEAN;
     }
 
   if (-1 == (status = attempt ("^del(ete)?$", action, del)))
@@ -621,13 +618,18 @@ main (const int argc, const char * const * const argv)
     }
   if (status)
     {
-      exit (0);
+      goto CLEAN;
     }
 
-  usage (NULL);
+  if (-1 == (status = attempt ("^h(elp)?$", action, usage)))
+    {
+      say (mode, MSG_E, "attempt failed\n");
+      exit (1);
+    }
 
+CLEAN:
   free (action);
 
-  return 0;
+  return status;
 }
 
