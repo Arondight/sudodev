@@ -381,14 +381,14 @@ int
 main (const int argc, const char * const * const argv)
 {
   char pattern[1 << 10];
-  char name[MAXPATHLEN];
+  char name[MAXPATHLEN + 1];
   char *str, *ident;
   int hasLock;
 
   /* Check uid  */
   if (getuid ())
     {
-      fprintf (stderr, "You should run this as root!\n");
+      fprintf (stderr, "You need to run this as root!\n");
       exit (1);
     }
 
@@ -397,7 +397,7 @@ main (const int argc, const char * const * const argv)
     {
       /* Daemonize self */
       str = strrchr (*argv, '/');
-      strncpy (name, str ? str + 1 : *argv, MAXPATHLEN - 1);
+      strncpy (name, str ? str + 1 : *argv, MAXPATHLEN);
       ident = name;
     }
 

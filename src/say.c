@@ -48,7 +48,7 @@
 int
 getSayMode (saymode_t * const mode)
 {
-  char path[MAXPATHLEN], link[MAXPATHLEN], file[MAXPATHLEN];
+  char path[MAXPATHLEN + 1], link[MAXPATHLEN + 1], file[MAXPATHLEN + 1];
   char pid[1 << 10];
   int index;
   int size, len;
@@ -63,21 +63,21 @@ getSayMode (saymode_t * const mode)
   sprintf (pid, "%d", getpid ());
   strcpy (path, root);
   len = strlen (path);
-  strncat (path, pid, MAXPATHLEN - len - 1);
+  strncat (path, pid, MAXPATHLEN - len);
   len = strlen (path);
-  strncat (path, "/", MAXPATHLEN - len - 1);
+  strncat (path, "/", MAXPATHLEN - len);
   ++len;
-  strncat (path, "fd", MAXPATHLEN - len -1);
+  strncat (path, "fd", MAXPATHLEN - len);
   len = strlen (path);
-  strncat (path, "/", MAXPATHLEN - len - 1);
+  strncat (path, "/", MAXPATHLEN - len);
   ++len;
 
   for (index = 0, size = sizeof (fds) / sizeof (int);
        index < size; ++index)
     {
       memset (file, 0, sizeof (file));
-      snprintf (link, MAXPATHLEN - len - 1, "%s/%d", path, index);
-      if (-1 == readlink (link, file, MAXPATHLEN - 1))
+      snprintf (link, MAXPATHLEN - len, "%s/%d", path, index);
+      if (-1 == readlink (link, file, MAXPATHLEN))
         {
           fprintf (stderr, "readlink failed: %s\n", strerror (errno));
           break;

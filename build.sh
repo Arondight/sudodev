@@ -28,5 +28,5 @@ if [[ 0 -eq $? && 'install' == $1 ]]; then
   install
 fi
 
-return $?
+exit $?
 

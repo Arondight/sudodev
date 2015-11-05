@@ -73,7 +73,7 @@ hasLockfile (void)
 
   if (-1 == ftruncate (fd, 0))
     {
-      say (mode, MSG_E, "ftruncate failed: %s", strerror (errno));
+      say (mode, MSG_E, "ftruncate failed: %s\n", strerror (errno));
       // Do nothing but show error message
     }
 

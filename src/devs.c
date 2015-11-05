@@ -36,20 +36,153 @@ static char **list = NULL;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* ========================================================================== *
+ * Return loacl devices
+ * ========================================================================== */
+int
+localDevs (void)
+{
+  char **text = NULL;
+  char *pos = NULL;
+  char path[MAXPATHLEN + 1], buff[MAXPATHLEN + 1];
+  saymode_t mode;
+  int convert;
+  int index, index2;
+  int no;
+  int len;
+  int chr;
+  const char interface[] = "/dev/disk/by-uuid";
+
+  sayMode (&mode);
+
+  if (list)
+    {
+      return 1;
+    }
+
+  if (-1 == readfile (FSTAB, &text) || !text)
+    {
+      say (mode, MSG_E, "readfile failed\n");
+      return -1;
+    }
+
+  /* Remove all comments */
+  for (index = 0; text[index]; ++index)
+    {
+      for (index2 = 0;
+           text[index][index2] && '#' != text[index][index2];
+           ++index2);
+      text[index][index2] = 0;
+    }
+
+  if (!text)
+    {
+      return -1;
+    }
+
+  pthread_mutex_lock (&mutex);
+
+  /* Apply enougth space for pointers */
+  ++index;
+  if (!(list = (char **)malloc (index * sizeof (char *))))
+    {
+      say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+      abort ();
+    }
+  memset (list, 0, index * sizeof (char *));
+
+  /* Here we will not use regex */
+  no = 0;
+  for (index = 0; text[index]; ++index)
+    {
+      if ((pos = strstr (text[index], "/dev")))
+        {
+          convert = 0;
+        }
+      else if ((pos = strstr (text[index], "UUID=")))
+        {
+          pos += 5;
+          convert = 1;
+        }
+      else
+        {
+          continue;
+        }
+
+      for (index2 = 0; (chr = pos[index2]); ++index2)
+        {
+          if (' ' == pos[index2] || '\t' == pos[index2])
+            {
+              break;
+            }
+        }
+
+      len = index2;
+
+      if (!(list[no] = (char *)malloc (len + 1)))
+        {
+          say (mode, MSG_E, "malloc failed:%s\n", strerror (errno));
+          abort ();
+        }
+
+      memset (list[no], 0, len + 1);
+      memcpy (list[no], pos, len);
+
+      if (convert)
+        {
+          snprintf (path, MAXPATHLEN, "%s/%s", interface, list[no]);
+          if (-1 == readlink (path, buff, MAXPATHLEN))
+            {
+              say (mode, MSG_E, "readlink failed: %s\n", strerror (errno));
+              continue;
+            }
+          len = strlen (buff);
+
+          if (!(list[no] = (char *)realloc (list[no], len + 1)))
+            {
+              say (mode, MSG_E, "realloc failed: %s\n", strerror (errno));
+              abort ();
+            }
+
+          memset (list[no], 0, len + 1);
+          memcpy (list[no], buff, len);
+        }
+
+      /* Now list[no] is path of device file,
+       * either absolute or relative paths is ok.
+       * And we should deal next */
+      ++no;
+    }
+
+  pthread_mutex_unlock (&mutex);
+
+  if (text)
+    {
+      for (index = 0; text[index]; ++index)
+        {
+          free (text[index]);
+        }
+      free (text);
+      text = NULL;
+    }
+
+  return 1;
+}
+
+/* ========================================================================== *
  * Determine whether a devPath is a local device
  * ========================================================================== */
 int
 isLocalDev (const char * const devPath)
 {
   char *pattern;
-  char buff[MAXPATHLEN];
+  char buff[MAXPATHLEN + 1];
   saymode_t mode;
-  int index, index2;
+  int index;
   int status;
 
   sayMode (&mode);
 
-  strncpy (buff, devPath, MAXPATHLEN - 1);
+  strncpy (buff, devPath, MAXPATHLEN);
   pattern = basename (buff);
 
   /* Remove partition number */
@@ -71,32 +204,7 @@ isLocalDev (const char * const devPath)
   return status;
   * } */
 
-  if (!list)
-    {
-      pthread_mutex_lock (&mutex);
-
-      if (-1 == readfile (FSTAB, &list) || !list)
-        {
-          say (mode, MSG_E, "readfile failed\n");
-          return -1;
-        }
-
-      /* Remove all comments */
-      for (index = 0; list[index]; ++index)
-        {
-          for (index2 = 0;
-               list[index][index2] && '#' != list[index][index2];
-               ++index2);
-          list[index][index2] = 0;
-        }
-
-      pthread_mutex_unlock (&mutex);
-    }
-
-  if (!list)
-    {
-      return -1;
-    }
+  localDevs ();
 
   status = 0;
   for (index = 0; list[index]; ++index)
@@ -117,7 +225,7 @@ devs (char ***addr)
   DIR *dh;
   struct dirent *dir;
   char **uuids;
-  char buff[MAXPATHLEN], dev[MAXPATHLEN];
+  char buff[MAXPATHLEN + 1], dev[MAXPATHLEN + 1];
   size_t len;
   saymode_t mode;
   int no, count;
@@ -154,8 +262,8 @@ devs (char ***addr)
           continue;
         }
 
-      snprintf (dev, MAXPATHLEN - 1,"%s/%s", interface, dir->d_name);
-      if (-1 == readlink (dev, buff, MAXPATHLEN - 1))
+      snprintf (dev, MAXPATHLEN,"%s/%s", interface, dir->d_name);
+      if (-1 == readlink (dev, buff, MAXPATHLEN))
         {
           continue;
         }

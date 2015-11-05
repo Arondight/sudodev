@@ -40,7 +40,7 @@
 
 typedef struct device
 {
-  char name[MAXPATHLEN];
+  char name[MAXPATHLEN + 1];
   const char *uuid;
 } device_t;
 
@@ -149,7 +149,7 @@ reload (void)
 
   if (-1 == kill (pid, SIGHUP))
     {
-      say (mode, MSG_E, "kill failed: %s", strerror (errno));
+      say (mode, MSG_E, "kill failed: %s\n", strerror (errno));
       return -1;
     }
 
@@ -164,8 +164,8 @@ add (void)
 {
   char **list;
   char **uuids;
-  char path[MAXPATHLEN];
-  char buff[MAXPATHLEN];
+  char path[MAXPATHLEN + 1];
+  char buff[MAXPATHLEN + 1];
   int devicesLen;
   int index, index2, count;
   int no;
@@ -202,14 +202,14 @@ add (void)
 
   for (index = 0, count = 0; list[index]; ++index)
     {
-      snprintf (path, MAXPATHLEN - 1, "%s/%s", interface, list[index]);
+      snprintf (path, MAXPATHLEN, "%s/%s", interface, list[index]);
 
       if (access (path, 0))
         {
           continue;
         }
 
-      if (-1 == readlink (path, buff, MAXPATHLEN - 1))
+      if (-1 == readlink (path, buff, MAXPATHLEN))
         {
           continue;
         }
@@ -238,7 +238,7 @@ add (void)
           abort ();
         }
 
-      strncpy (devices[count]->name, basename (buff), MAXPATHLEN - 1);
+      strncpy (devices[count]->name, basename (buff), MAXPATHLEN);
       devices[count]->uuid = list[index];
       ++count;
     }
@@ -360,8 +360,8 @@ int
 del (void)
 {
   char **list;
-  char path[MAXPATHLEN];
-  char buff[MAXPATHLEN];
+  char path[MAXPATHLEN + 1];
+  char buff[MAXPATHLEN + 1];
   int devicesLen;
   int no;
   int index;
@@ -398,7 +398,7 @@ del (void)
 
   for (index = 0; list[index]; ++index)
     {
-      snprintf (path, MAXPATHLEN - 1, "%s/%s", interface, list[index]);
+      snprintf (path, MAXPATHLEN, "%s/%s", interface, list[index]);
 
       if (!(devices[index] = (device_t *)malloc (sizeof (device_t))))
         {
@@ -408,11 +408,11 @@ del (void)
 
       if (!access (path, 0))
         {
-          if (-1 == readlink (path, buff, MAXPATHLEN - 1))
+          if (-1 == readlink (path, buff, MAXPATHLEN))
             {
               continue;
             }
-          strncpy (devices[index]->name, basename (buff), MAXPATHLEN - 1);
+          strncpy (devices[index]->name, basename (buff), MAXPATHLEN);
         }
       else
         {
@@ -445,7 +445,7 @@ del (void)
 
   for (index = 0; devices[index]; ++index)
     {
-      say (mode, MSG_I, "[%3d]  %s", index + 1, devices[index]->name);
+      say (mode, MSG_I, "[%3d]  %s\n", index + 1, devices[index]->name);
 
       if (!(strncmp (UNKNOWNSTR, devices[index]->name, UNKNOWNSTRLEN)))
         {
@@ -551,7 +551,7 @@ attempt (const char * const pattern,
   if ((status = regcomp (&regex, pattern, REG_EXTENDED | REG_ICASE)) < 0)
     {
       regerror (status, &regex, strerr, sizeof (strerr));
-      say (mode, MSG_E, "regerror failed: %s", strerr);
+      say (mode, MSG_E, "regerror failed: %s\n", strerr);
       return -1;
     }
 
@@ -585,7 +585,7 @@ main (const int argc, const char * const * const argv)
   /* Check uid  */
   if (getuid ())
     {
-      say (mode, MSG_E, "You should run this as root!\n");
+      say (mode, MSG_E, "You need to run this as root.\n");
       exit (1);
     }
 
@@ -595,7 +595,12 @@ main (const int argc, const char * const * const argv)
       exit (1);
     }
 
-  /* No need to call getopt_long here */
+  if (access (LOCKFILE, 0))
+    {
+      say (mode, MSG_E, "Deamon is not running, quit.\n");
+      exit (1);
+    }
+
   action = (char *)malloc (strlen (argv[1]) + 1);
   strcpy (action, argv[1]);
 
