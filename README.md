@@ -1,6 +1,6 @@
 # NAME
 
-sudodev - Create your special devices for sudo privilege without password
+sudodev - Create your special device for a none-password sudo
 
 # SYNOPSIS
 
@@ -57,7 +57,7 @@ Copyright (c) 2015 秦凡东 (Qin Fandong)
 
 # LICENSE
 
-See [LICENSE][ID_LICENSE]
+Read [LICENSE][ID_LICENSE]
 
 [ID_LICENSE]: LICENSE "Read LICENSE"
 

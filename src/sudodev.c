@@ -245,7 +245,8 @@ add (void)
   if (-1 == msort (devices, devicesLen, sizeof (device_t *), cmpDeviceName))
     {
       say (mode, MSG_E, "msort failed\n");
-      return -1;
+      error = 1;
+      goto CLEAN;
     }
 
   for (index = 0; devices[index]; ++index)
@@ -258,7 +259,8 @@ add (void)
   if (count < 1)
     {
       say (mode, MSG_W, "No available device found\n");
-      return 1;
+      error = 0;
+      goto CLEAN;
     }
 
   while (1)
@@ -268,14 +270,16 @@ add (void)
       if (!fgets (buff, (1 << 10) - 1, stdin))
         {
           say (mode, MSG_E, "fgets failed: %s\n", strerror (errno));
-          return -1;
+          error = 1;
+          goto CLEAN;
         }
       buff[strlen (buff) - 1] = 0;
 
       if ('q' == *buff)
         {
           say (mode, MSG_I, "quit\n");
-          return 1;
+          error = 0;
+          goto CLEAN;
         }
 
       if (-1 == (status = isNO (buff)) || !status)
@@ -430,7 +434,8 @@ del (void)
   if (-1 == msort (devices, devicesLen, sizeof (device_t *), cmpDeviceName))
     {
       say (mode, MSG_E, "msort failed\n");
-      return -1;
+      error = 1;
+      goto CLEAN;
     }
 
   if (!index)
@@ -461,14 +466,16 @@ del (void)
       if (!fgets (buff, (1 << 10) - 1, stdin))
         {
           say (mode, MSG_E, "fgets failed: %s\n", strerror (errno));
-          return -1;
+          error = 1;
+          goto CLEAN;
         }
       buff[strlen (buff) - 1] = 0;
 
       if ('q' == *buff)
         {
           say (mode, MSG_I, "quit\n");
-          return 1;
+          error = 0;
+          goto CLEAN;
         }
 
       if (-1 == (status = isNO (buff)) || !status)
@@ -575,7 +582,7 @@ int
 main (const int argc, const char * const * const argv)
 {
   char *action;
-  int status;
+  int status = 0, error;
 
   sayMode (&mode);
 
@@ -598,38 +605,49 @@ main (const int argc, const char * const * const argv)
       exit (1);
     }
 
-  action = (char *)malloc (strlen (argv[1]) + 1);
+  error = 0;
+
+  if (!(action = (char *)malloc (strlen (argv[1]) + 1)))
+    {
+      say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+      abort ();
+    }
   strcpy (action, argv[1]);
 
   if (-1 == (status = attempt ("^add$", action, add)))
     {
       say (mode, MSG_E, "attempt failed\n");
-      exit (1);
+      error = 1;
+      goto CLEAN;
     }
   if (status)
     {
+      error = 0;
       goto CLEAN;
     }
 
   if (-1 == (status = attempt ("^del(ete)?$", action, del)))
     {
       say (mode, MSG_E, "attempt failed\n");
-      exit (1);
+      error = 1;
+      goto CLEAN;
     }
   if (status)
     {
+      error = 0;
       goto CLEAN;
     }
 
   if (-1 == (status = attempt ("^h(elp)?$", action, usage)))
     {
       say (mode, MSG_E, "attempt failed\n");
-      exit (1);
+      error = 1;
+      goto CLEAN;
     }
 
 CLEAN:
   free (action);
 
-  return status;
+  return error;
 }
 

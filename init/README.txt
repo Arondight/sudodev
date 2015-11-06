@@ -58,8 +58,7 @@ init program is:
   4. BSD init (for exmaple, Slackware Linux)
 
     For BSD init, it is a bit complicated, you can not config it only by type
-    some conmands. You have to write script in some files manually, and, have to
-    datermind where is sutable to write.
+    some conmands. You have to write script in suitable location of some files.
 
     Set start/stop runlevels:
       Write the line below to /etc/rc.d/rc.4 and /etc/rc.d/rc.M:
