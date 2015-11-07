@@ -265,11 +265,13 @@ devs (char ***addr)
       snprintf (dev, MAXPATHLEN,"%s/%s", interface, dir->d_name);
       if (-1 == readlink (dev, buff, MAXPATHLEN))
         {
+          --count;
           continue;
         }
 
       if (isLocalDev (buff))
         {
+          --count;
           continue;
         }
 
