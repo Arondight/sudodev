@@ -57,12 +57,13 @@ init program is:
 
   4. BSD init (for exmaple, Slackware Linux)
 
-    For BSD init, it is a bit complicated, you can not config it only by type
-    some conmands. You have to write script in suitable location of some files.
+    For BSD init, it is a bit complicated, you can configure these by conmands.
+    You have to write lines in suitable location of some files manually.
 
     Set start/stop runlevels:
       Write the line below to /etc/rc.d/rc.4 and /etc/rc.d/rc.M:
         [ -x /etc/rc.d/rc.sudodevd ] && /etc/rc.d/rc.sudodevd start
+
       Write the line below to /etc/rc.d/rc.0, /etc/rc.d/rc.6 and /etc/rc.d/rc.K:
         [ -x /etc/rc.d/rc.sudodevd ] && /etc/rc.d/rc.sudodevd stop
 

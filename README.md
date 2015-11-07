@@ -16,9 +16,9 @@ git clone https://github.com/Arondight/sudodev.git sudodev
 cd sudodev
 ```
 
-Goto [INSTALL][ID_INSTALL] for installation instructions.
+Read [INSTALL][ID_INSTALL] for installation.
 
-Read [init/README.txt][ID_INIT_README_TXT] for how to configure the inti script.
+Read [init/README.txt][ID_INIT_README_TXT] for configure.
 
 [ID_INSTALL]: INSTALL "Read INSTALL"
 [ID_INIT_README_TXT]: init/README.txt "Read init/README.txt"
@@ -31,7 +31,7 @@ Read [init/README.txt][ID_INIT_README_TXT] for how to configure the inti script.
 
 2. `sudodevd`
 
-    This is the daemon, you should not start this manually, you are recommanded to 
+    This is the daemon, you should not start this manually, you are recommanded to
 start it via your sevice manager such as systemctl and initctl (for earlier,
 `/etc/init.d/sudodevd` for SysVinit and `/etc/rc.d/rc.sudodevd` for BSD init).
 
