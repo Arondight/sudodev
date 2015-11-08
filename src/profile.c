@@ -32,7 +32,7 @@
 int
 cmpStr (const void * const a, const void * const b)
 {
-  return strcmp ((char *)a, (char *)b);
+  return strcmp (*(char **)a, *(char **)b);
 }
 
 /* ========================================================================== *

@@ -29,7 +29,6 @@
 #include "devs.h"
 #include "say.h"
 #include "sort.h"
-#include "find.h"
 #include "readfile.h"
 #include "profile.h"
 #include "config.h"

@@ -34,6 +34,7 @@
 #include "profile.h"
 #include "devs.h"
 #include "say.h"
+#include "sort.h"
 #include "lockfile.h"
 #include "readfile.h"
 #include "config.h"
@@ -52,6 +53,12 @@ static char **sysdevs = NULL;   /* UUID list of all devices */
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static sigset_t mask;
 static saymode_t mode;
+
+int
+cmpStr (const void * const a, const void * const b)
+{
+  return strcmp (*(char **)a, *(char **)b);
+}
 
 /* ========================================================================== *
  * Destroy a string list
@@ -176,6 +183,8 @@ sigtermHandler (const int signo)
 void
 sighupHandler (const int signo)
 {
+  char **list;
+  int index, index2;
   /* Useless, to ignore warning from syntastic plugin of vim { */
   int trash = signo;
   ++trash;
@@ -184,12 +193,51 @@ sighupHandler (const int signo)
   say (mode, MSG_I, "SIGHUP is received, reload config\n");
 
   cleanSudoDev ();
+
   pthread_mutex_lock (&mutex);
-  if (-1 == readfile (PROFILE, &sudodevs))
+
+  if (-1 == readfile (PROFILE, &list))
     {
       say (mode, MSG_E, "readfile failed\n");
       cleanSudoDev ();
+      return;
     }
+
+  for (index = 0; list[index]; ++index);
+  if (-1 == msort (list, index, sizeof (char **), cmpStr))
+    {
+      say (mode, MSG_E, "msort failed\n");
+      /* Do nothing */
+    }
+
+  if (!(sudodevs = (char **)malloc ((index + 1) * sizeof (char *))))
+    {
+      say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+      abort ();
+    }
+  memset (sudodevs, 0, (index + 1) * sizeof (char *));
+
+  *sudodevs = *list;
+  index2 = 0;
+  for (index = 1; list[index]; ++index)
+    {
+      if (!strcmp (sudodevs[index2], list[index]))
+        {
+          free (list[index]);
+        }
+      else
+        {
+          ++index2;
+          sudodevs[index2] = list[index];
+        }
+    }
+
+  if (list)
+    {
+      free (list);
+      list = NULL;
+    }
+
   pthread_mutex_unlock (&mutex);
 }
 
@@ -335,9 +383,11 @@ outWork (void)
 void
 eventloop (void)
 {
+  char **all;
   int work;       /* Status will change to */
-  int working;    /* Status now */
+  int working;    /* Current status */
   int index, index2;
+  int len;
 
   working = 0;
 
@@ -349,7 +399,54 @@ eventloop (void)
           exit (1);
         }
 
-      /* TODO: Use a better algorithm to find match uuid { */
+      /* Now we use a faster way to find matched UUID { */
+      pthread_mutex_lock (&mutex);
+
+      for (index = 0; sysdevs[index]; ++index);
+      for (index2 = 0; sudodevs[index2]; ++index2);
+      len = index + index2;
+      if (!(all = (char **)malloc ((len + 1) * sizeof (char *))))
+        {
+          say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+          abort ();
+        }
+
+      memset (all, 0, (len + 1) * sizeof (char *));
+      memcpy (all, sysdevs, index * sizeof (char *));
+      memcpy (all + index, sudodevs, index2 * sizeof (char *));
+
+      if (-1 == msort (all, len, sizeof (char *), cmpStr))
+        {
+          say (mode, MSG_E, "msort failed\n");
+          continue;
+        }
+
+      for (index = 0; all[index]; ++index);
+
+      work = 0;
+      if (index > 1)
+        {
+          for (index2 = 0; index2 < index - 1; ++index2)
+            {
+              if (!strcmp (all[index2], all[index2 + 1]))
+                {
+                  work = 1;
+                  break;
+                }
+            }
+        }
+
+      pthread_mutex_unlock (&mutex);
+
+      if (all)
+        {
+          /* Only free all here */
+          free (all);
+          all = NULL;
+        }
+      /* } */
+
+      /* TODO: Use a better algorithm to find match uuid { *
       work = 0;
       for (index = 0; sysdevs && sysdevs[index]; ++index)
         {
@@ -362,9 +459,9 @@ eventloop (void)
                 }
             }
         }
-      /* } */
-
 OUT:
+      * } */
+
       if (work != working)
         {
           working = work ? inWork () : !outWork ();
@@ -468,13 +565,7 @@ main (const int argc, const char * const * const argv)
     }
 
   /* Read config file */
-  pthread_mutex_lock (&mutex);
-  cleanSudoDev ();
-  if (-1 == readfile (PROFILE, &sudodevs))
-    {
-      cleanSudoDev ();
-    }
-  pthread_mutex_unlock (&mutex);
+  sighupHandler (SIGHUP);
 
   /* Eable drop-in file at sudoers */
   if (-1 == enableDropInFile ())
