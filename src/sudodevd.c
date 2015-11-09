@@ -196,10 +196,19 @@ sighupHandler (const int signo)
 
   pthread_mutex_lock (&mutex);
 
-  if (-1 == readfile (PROFILE, &list))
+  if (readfile (PROFILE, &list) < 1)
     {
       say (mode, MSG_E, "readfile failed\n");
-      cleanSudoDev ();
+      if (list)
+        {
+          for (index = 0; list[index]; ++index)
+            {
+              free (list[index]);
+            }
+          free (list);
+          list = NULL;
+        }
+      pthread_mutex_lock (&mutex);
       return;
     }
 

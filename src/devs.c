@@ -59,7 +59,7 @@ localDevs (void)
       return 1;
     }
 
-  if (-1 == readfile (FSTAB, &text) || !text)
+  if (readfile (FSTAB, &text) < 1 || !text)
     {
       say (mode, MSG_E, "readfile failed\n");
       return -1;

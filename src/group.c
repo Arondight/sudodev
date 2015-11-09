@@ -70,7 +70,7 @@ addGroup (const char * const group)
 
   sayMode (&mode);
 
-  if (-1 == readfile (GROUP_FILE, &list))
+  if (readfile (GROUP_FILE, &list) < 1)
     {
       say (mode, MSG_E, "readfile failed\n");
       return -1;

@@ -181,7 +181,7 @@ add (void)
       return -1;
     }
 
-  if (readfile (PROFILE, &uuids) <= 0)
+  if (readfile (PROFILE, &uuids) < 1)
     {
       uuids = NULL;
     }
