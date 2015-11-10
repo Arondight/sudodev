@@ -18,6 +18,7 @@ add_executable (
   sudodev
   sudodev.c
   chomp.c
+  color.c
   devs.c
   find.c
   profile.c

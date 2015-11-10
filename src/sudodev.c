@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/param.h>
+#include "color.h"
 #include "devs.h"
 #include "say.h"
 #include "sort.h"
@@ -74,7 +75,10 @@ usage (void)
 
   for (line = 0; text[line]; ++line)
     {
-      say (mode, MSG_I, text[line]);
+      say (mode, MSG_I, "%s%s%s",
+                        MODE_OUT == mode ? C_BBLUE : "",
+                        text[line],
+                        MODE_OUT == mode ? C_NORMAL : "");
     }
 
   return 1;
@@ -250,21 +254,35 @@ add (void)
 
   for (index = 0; devices[index]; ++index)
     {
-      say (mode, MSG_I, "[%3d]  %s\n", index + 1, devices[index]->name);
+      if (MODE_OUT == mode)
+        {
+          say (mode, MSG_I, "[%s%3d%s]  %s%s%s\n",
+                            C_BGREEN, index + 1, C_NORMAL,
+                            C_BYELLOW, devices[index]->name, C_NORMAL);
+        }
+      else
+        {
+          say (mode, MSG_I, "[%3d]  %s\n",
+                            index + 1, devices[index]->name);
+        }
     }
 
   count = index;
 
   if (count < 1)
     {
-      say (mode, MSG_W, "No available device found\n");
+      say (mode, MSG_W, "%sNo available device found%s\n",
+                        MODE_OUT == mode ? C_BCYAN : "",
+                        MODE_OUT == mode ? C_NORMAL : "");
       error = 0;
       goto CLEAN;
     }
 
   while (1)
     {
-      say (mode, MSG_I, "Choose a device (q to quit): ");
+      say (mode, MSG_I, "Choose a device (%sq to quit%s): ",
+                        MODE_OUT == mode ? C_BPURPLE : "",
+                        MODE_OUT == mode ? C_NORMAL : "");
 
       if (!fgets (buff, (1 << 10) - 1, stdin))
         {
@@ -276,7 +294,9 @@ add (void)
 
       if ('q' == *buff)
         {
-          say (mode, MSG_I, "quit\n");
+          say (mode, MSG_I, "%squit%s\n",
+                            MODE_OUT == mode ? C_BRED : "",
+                            MODE_OUT == mode ? C_NORMAL : "");
           error = 0;
           goto CLEAN;
         }
@@ -298,25 +318,39 @@ add (void)
 
   error = 0;
 
-  say (mode, MSG_I, "adding device...");
+  say (mode, MSG_I, "%sadding device%s...",
+                    MODE_OUT == mode ? C_BCYAN : "",
+                    MODE_OUT == mode ? C_NORMAL : "");
   if (-1 == profileAddItem (devices[no - 1]->uuid))
     {
-      say (mode, MSG_I, "failed\n");
+      say (mode, MSG_I, "%sfailed%s\n",
+                        MODE_OUT == mode ? C_BGRED : "",
+                        MODE_OUT == mode ? C_NORMAL : "");
       error = 1;
       goto CLEAN;
     }
-  say (mode, MSG_I, "done\n");
+  say (mode, MSG_I, "%sdone%s\n",
+                    MODE_OUT == mode ? C_BGGREEN : "",
+                    MODE_OUT == mode ? C_NORMAL : "");
 
-  say (mode, MSG_I, "reloading config...");
+  say (mode, MSG_I, "%sreloading config...%s",
+                    MODE_OUT == mode ? C_BCYAN : "",
+                    MODE_OUT == mode ? C_NORMAL : "");
   if (-1 == reload ())
     {
-      say (mode, MSG_I, "failed\n");
-      say (mode, MSG_I, "you can reload config of sudodevd "
-                        "using init tools (like systemctl) manually\n");
+      say (mode, MSG_I, "%sfailed%s\n",
+                        MODE_OUT == mode ? C_BGRED : "",
+                        MODE_OUT == mode ? C_NORMAL : "");
+      say (mode, MSG_I, "%syou can reload config of sudodevd "
+                        "using init tools (like systemctl) manually%s\n",
+                        MODE_OUT == mode ? C_BRED : "",
+                        MODE_OUT == mode ? C_NORMAL : "");
       error = 1;
       goto CLEAN;
     }
-  say (mode, MSG_I, "done\n");
+  say (mode, MSG_I, "%sdone%s\n",
+                    MODE_OUT == mode ? C_BGGREEN : "",
+                    MODE_OUT == mode ? C_NORMAL : "");
 
 CLEAN:
   if (list)
@@ -370,7 +404,17 @@ del (void)
 
   if (access (PROFILE, 0))
     {
-      say (mode, MSG_E, "Config file not exist, run \"sudodev add\" first.\n");
+      if (MODE_OUT == mode)
+        {
+          say (mode, MSG_E,
+               "%sConfig file not exist, run %s\"sudodev add\"%s first.%s\n",
+               C_BRED, C_BGREEN, C_BRED, C_NORMAL);
+        }
+      else
+        {
+          say (mode, MSG_E,
+               "Config file not exist, run \"sudodev add\" first.\n");
+        }
       return 0;
     }
 
@@ -382,7 +426,9 @@ del (void)
 
   if (!list)
     {
-      say (mode, MSG_E, "No device found in config file, quit.\n");
+      say (mode, MSG_E, "%sNo device found in config file, quit.%s\n",
+                        MODE_OUT == mode ? C_BRED : "",
+                        MODE_OUT == mode ? C_NORMAL : "");
       return 0;
     }
 
@@ -439,19 +485,33 @@ del (void)
 
   if (!index)
     {
-      say (mode, MSG_I, "No available device found\n");
+      say (mode, MSG_I, "%sNo available device found%s\n",
+                        MODE_OUT == mode ? C_BRED : "",
+                        MODE_OUT == mode ? C_NORMAL : "");
       error = 0;
       goto CLEAN;
     }
 
   for (index = 0; devices[index]; ++index)
     {
-      say (mode, MSG_I, "[%3d]  %s", index + 1, devices[index]->name);
+      if (MODE_OUT == mode)
+        {
+          say (mode, MSG_I, "[%s%3d%s]  %s%s%s",
+                            C_BGREEN, index + 1, C_NORMAL,
+                            C_BYELLOW, devices[index]->name, C_NORMAL);
+        }
+      else
+        {
+          say (mode, MSG_I, "[%3d]  %s", index + 1, devices[index]->name);
+        }
 
       if (!(strncmp (UNKNOWNSTR, devices[index]->name, UNKNOWNSTRLEN)))
         {
           strncpy (buff, devices[index]->uuid, 8);
-          say (mode, MSG_I, "\t->  %s...\n", buff);
+          say (mode, MSG_I, "\t->  %s%s%s...\n",
+                            MODE_OUT == mode ? C_BRED : "",
+                            buff,
+                            MODE_OUT == mode ? C_NORMAL : "");
         }
       else
         {
@@ -461,7 +521,9 @@ del (void)
 
    while (1)
     {
-      say (mode, MSG_I, "Choose a device (q to quit): ");
+      say (mode, MSG_I, "Choose a device (%sq to quit%s): ",
+                        MODE_OUT == mode ? C_BPURPLE : "",
+                        MODE_OUT == mode ? C_NORMAL : "");
       if (!fgets (buff, (1 << 10) - 1, stdin))
         {
           say (mode, MSG_E, "fgets failed: %s\n", strerror (errno));
@@ -472,7 +534,9 @@ del (void)
 
       if ('q' == *buff)
         {
-          say (mode, MSG_I, "quit\n");
+          say (mode, MSG_I, "%squit%s\n",
+                            MODE_OUT == mode ? C_BRED : "",
+                            MODE_OUT == mode ? C_NORMAL : "");
           error = 0;
           goto CLEAN;
         }
@@ -494,25 +558,39 @@ del (void)
 
   error = 0;
 
-  say (mode, MSG_I, "deleting device...");
+  say (mode, MSG_I, "%sdeleting device%s...",
+                    MODE_OUT == mode ? C_BCYAN : "",
+                    MODE_OUT == mode ? C_NORMAL : "");
   if (-1 == profileDelItem (devices[no - 1]->uuid))
     {
-      say (mode, MSG_I, "failed\n");
+      say (mode, MSG_I, "%sfailed%s\n",
+                        MODE_OUT == mode ? C_BGRED : "",
+                        MODE_OUT == mode ? C_NORMAL : "");
       error = 1;
       goto CLEAN;
     }
-  say (mode, MSG_I, "done\n");
+  say (mode, MSG_I, "%sdone%s\n",
+                    MODE_OUT == mode ? C_BGGREEN : "",
+                    MODE_OUT == mode ? C_NORMAL : "");
 
-  say (mode, MSG_I, "reloading config...");
+  say (mode, MSG_I, "%sreloading config%s...",
+                    MODE_OUT == mode ? C_BCYAN : "",
+                    MODE_OUT == mode ? C_NORMAL : "");
   if (-1 == reload ())
     {
-      say (mode, MSG_I, "failed\n");
-      say (mode, MSG_I, "you can reload config of sudodevd "
-                        "using init tools (like systemctl) manually\n");
+      say (mode, MSG_I, "%sfailed%s\n",
+                        MODE_OUT == mode ? C_BGRED : "",
+                        MODE_OUT == mode ? C_NORMAL : "");
+      say (mode, MSG_I, "%syou can reload config of sudodevd "
+                        "using init tools (like systemctl) manually%s\n",
+                        MODE_OUT == mode ? C_BRED : "",
+                        MODE_OUT == mode ? C_NORMAL : "");
       error = 1;
       goto CLEAN;
     }
-  say (mode, MSG_I, "done\n");
+  say (mode, MSG_I, "%sdone%s\n",
+                    MODE_OUT == mode ? C_BGGREEN : "",
+                    MODE_OUT == mode ? C_NORMAL : "");
 
 CLEAN:
   if (list)
@@ -588,7 +666,9 @@ main (const int argc, const char * const * const argv)
   /* Check uid  */
   if (getuid ())
     {
-      say (mode, MSG_E, "You need to run this as root.\n");
+      say (mode, MSG_E, "%sYou need to run this as root.%s\n",
+                        MODE_OUT == mode ? C_BRED : "",
+                        MODE_OUT == mode ? C_NORMAL : "");
       exit (1);
     }
 
@@ -600,7 +680,9 @@ main (const int argc, const char * const * const argv)
 
   if (access (LOCKFILE, 0))
     {
-      say (mode, MSG_E, "Deamon is not running, quit.\n");
+      say (mode, MSG_E, "%sDeamon is not running, quit.%s\n",
+                        MODE_OUT == mode ? C_BGRED : "",
+                        MODE_OUT == mode ? C_NORMAL : "");
       exit (1);
     }
 
