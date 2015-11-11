@@ -35,6 +35,7 @@
 #include "devs.h"
 #include "say.h"
 #include "sort.h"
+#include "color.h"
 #include "lockfile.h"
 #include "readfile.h"
 #include "config.h"
@@ -494,7 +495,8 @@ main (const int argc, const char * const * const argv)
   /* Check uid  */
   if (getuid ())
     {
-      fprintf (stderr, "You need to run this as root!\n");
+      fprintf (stderr, "%sYou need to run this as root.%s\n",
+                        C_BRED, C_NORMAL);
       exit (1);
     }
 
@@ -509,7 +511,8 @@ main (const int argc, const char * const * const argv)
 
   if (-1 == daemonize (ident))
     {
-      fprintf (stderr, "can not run as a daemon, quit");
+      fprintf (stderr, "%scan not run as a daemon, quit%s\n",
+                        C_BGRED, C_NORMAL);
       exit (1);
     }
 

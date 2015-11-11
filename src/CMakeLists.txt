@@ -2,6 +2,7 @@ add_executable (
   sudodevd
   sudodevd.c
   chomp.c
+  color.c
   daemonize.c
   devs.c
   find.c
