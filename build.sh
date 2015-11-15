@@ -3,6 +3,9 @@
 # This to build project
 # ==============================================================================
 
+if [ $(id -u) != "0" ]; then
+echo "Error: You must be root to run this script, please use root to run this script"
+else
 curdir=$(dirname $(readlink -f $0))
 builddir=$curdir/build
 
@@ -29,4 +32,5 @@ if [[ 0 -eq $? && 'install' == $1 ]]; then
 fi
 
 exit $?
+fi
 
