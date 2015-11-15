@@ -1,6 +1,7 @@
 1. Install the program
 
-    Run "install.sh"
+    To do build and install, run:
+      ./install.sh
 
 2. Configure init script
 

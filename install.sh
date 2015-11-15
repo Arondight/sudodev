@@ -3,5 +3,5 @@
 # This to build project and do install
 # ==============================================================================
 
-source build.sh install
+source ./build.sh install
 
