@@ -19,7 +19,7 @@
 #ifndef __COLOR_H__
 #define __COLOR_H__
 
-#define MAX_COLOR_STR_LEN (1<<3)
+#define MAX_COLOR_STR_LEN (1 << 3)
 
 /* Make color string */
 int makeColor (char **addr, const char * const color, ...);

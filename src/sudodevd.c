@@ -71,7 +71,7 @@ destoryList (char *** const addr)
 
   if (!addr)
     {
-      return -1;
+      return 1;
     }
 
   /* Free *addr */
@@ -209,7 +209,11 @@ sighupHandler (const int signo)
           free (list);
           list = NULL;
         }
-      pthread_mutex_lock (&mutex);
+
+      cleanSudoDev ();
+
+      pthread_mutex_unlock (&mutex);
+
       return;
     }
 
@@ -413,7 +417,7 @@ eventloop (void)
       pthread_mutex_lock (&mutex);
 
       for (index = 0; sysdevs[index]; ++index);
-      for (index2 = 0; sudodevs[index2]; ++index2);
+      for (index2 = 0; sudodevs && sudodevs[index2]; ++index2);
       len = index + index2;
       if (!(all = (char **)malloc ((len + 1) * sizeof (char *))))
         {
@@ -423,7 +427,11 @@ eventloop (void)
 
       memset (all, 0, (len + 1) * sizeof (char *));
       memcpy (all, sysdevs, index * sizeof (char *));
-      memcpy (all + index, sudodevs, index2 * sizeof (char *));
+
+      if (sudodevs)
+        {
+          memcpy (all + index, sudodevs, index2 * sizeof (char *));
+        }
 
       if (-1 == msort (all, len, sizeof (char *), cmpStr))
         {
