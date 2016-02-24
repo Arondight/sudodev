@@ -46,8 +46,7 @@ addGroup (const char * const group)
   strcat (cmd, SUDODEV_GROUP);
 
   return !system (cmd);
-  * } */
-
+  * } then { */
   FILE *fh;
   char **list;
   char *id;
@@ -183,5 +182,6 @@ addGroup (const char * const group)
     }
 
   return 1;
+  /* } // End then */
 }
 

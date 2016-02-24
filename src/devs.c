@@ -165,11 +165,6 @@ localDevs (void)
 
   pthread_mutex_unlock (&mutex);
 
-  for (index = 0; list[index]; ++index)
-    {
-      puts (list[index]);
-    }
-
   if (text)
     {
       for (index = 0; text[index]; ++index)

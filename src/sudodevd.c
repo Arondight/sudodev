@@ -413,7 +413,21 @@ eventloop (void)
           exit (1);
         }
 
-      /* Now we use a faster way to find matched UUID { */
+      /* TODO: Use a better algorithm to find match uuid { *
+      work = 0;
+      for (index = 0; sysdevs && sysdevs[index]; ++index)
+        {
+          for (index2 = 0; sudodevs && sudodevs[index2]; ++index2)
+            {
+              if (!strcmp (sysdevs[index], sudodevs[index2]))
+                {
+                  work = 1;
+                  goto OUT;
+                }
+            }
+        }
+OUT:
+      * } then { */
       pthread_mutex_lock (&mutex);
 
       for (index = 0; sysdevs[index]; ++index);
@@ -458,27 +472,11 @@ eventloop (void)
 
       if (all)
         {
-          /* Only free all here */
+          /* Only free here */
           free (all);
           all = NULL;
         }
-      /* } */
-
-      /* TODO: Use a better algorithm to find match uuid { *
-      work = 0;
-      for (index = 0; sysdevs && sysdevs[index]; ++index)
-        {
-          for (index2 = 0; sudodevs && sudodevs[index2]; ++index2)
-            {
-              if (!strcmp (sysdevs[index], sudodevs[index2]))
-                {
-                  work = 1;
-                  goto OUT;
-                }
-            }
-        }
-OUT:
-      * } */
+      /* }  // End then */
 
       if (work != working)
         {
