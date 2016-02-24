@@ -219,10 +219,6 @@ isLocalDev (const char * const devPath)
   status = 0;
   for (index = 0; list[index]; ++index)
     {
-      /* FIXME: This is incorrect, we should use basename to match.
-         Current we use path to match, but a same device file may
-         have different path, for example:
-          '/dev/sda1' and '../../sda1' { */
       if (strstr (list[index], pattern))
         {
           status = 1;
