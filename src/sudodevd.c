@@ -1,5 +1,5 @@
 /* ========================================================================== *
- * Copyright (c) 2015 秦凡东 (Qin Fandong)
+ * Copyright (c) 2015-2016 秦凡东 (Qin Fandong)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -585,7 +585,7 @@ main (const int argc, const char * const * const argv)
     }
 
   /* Read config file */
-  sighupHandler (SIGHUP);
+  raise (SIGHUP);
 
   /* Eable drop-in file at sudoers */
   if (-1 == enableDropInFile ())

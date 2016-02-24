@@ -1,5 +1,5 @@
 /* ========================================================================== *
- * Copyright (c) 2015 秦凡东 (Qin Fandong)
+ * Copyright (c) 2015-2016 秦凡东 (Qin Fandong)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-#define VERSION ("0.23")
+#define VERSION ("0.25")
 
 /* Never modify this { */
 #define SUDODEV_GROUP ("sudodev")

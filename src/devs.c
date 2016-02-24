@@ -1,5 +1,5 @@
 /* ========================================================================== *
- * Copyright (c) 2015 秦凡东 (Qin Fandong)
+ * Copyright (c) 2015-2016 秦凡东 (Qin Fandong)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * ========================================================================== *
- * Get uuid of every device via interface /dev/disk/by-uud/
+ * Get uuid of every device
  * ========================================================================== */
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,12 +45,13 @@ localDevs (void)
   char *pos = NULL;
   char path[MAXPATHLEN + 1], buff[MAXPATHLEN + 1];
   saymode_t mode;
-  int convert;
+  int uuid2path, label2path;
   int index, index2;
   int no;
   int len;
   int chr;
-  const char interface[] = "/dev/disk/by-uuid";
+  const char uuidInterface[] = "/dev/disk/by-uuid";
+  const char labelInterface[] = "/dev/disk/by-label";
 
   sayMode (&mode);
 
@@ -69,8 +70,8 @@ localDevs (void)
   for (index = 0; text[index]; ++index)
     {
       for (index2 = 0;
-           text[index][index2] && '#' != text[index][index2];
-           ++index2);
+            text[index][index2] && '#' != text[index][index2];
+            ++index2);
       text[index][index2] = 0;
     }
 
@@ -94,14 +95,21 @@ localDevs (void)
   no = 0;
   for (index = 0; text[index]; ++index)
     {
+      uuid2path = label2path = 0;
+
       if ((pos = strstr (text[index], "/dev")))
         {
-          convert = 0;
+          /* Do nothing */
         }
       else if ((pos = strstr (text[index], "UUID=")))
         {
           pos += 5;
-          convert = 1;
+          uuid2path = 1;
+        }
+      else if ((pos = strstr (text[index], "LABEL=")))
+        {
+          pos += 6;
+          label2path = 1;
         }
       else
         {
@@ -127,9 +135,11 @@ localDevs (void)
       memset (list[no], 0, len + 1);
       memcpy (list[no], pos, len);
 
-      if (convert)
+      if (uuid2path || label2path)
         {
-          snprintf (path, MAXPATHLEN, "%s/%s", interface, list[no]);
+          snprintf (path, MAXPATHLEN, "%s/%s",
+                      uuid2path ? uuidInterface : labelInterface, list[no]);
+
           if (-1 == readlink (path, buff, MAXPATHLEN))
             {
               say (mode, MSG_E, "readlink failed: %s\n", strerror (errno));
@@ -154,6 +164,11 @@ localDevs (void)
     }
 
   pthread_mutex_unlock (&mutex);
+
+  for (index = 0; list[index]; ++index)
+    {
+      puts (list[index]);
+    }
 
   if (text)
     {
@@ -209,11 +224,16 @@ isLocalDev (const char * const devPath)
   status = 0;
   for (index = 0; list[index]; ++index)
     {
+      /* FIXME: This is incorrect, we should use basename to match.
+         Current we use path to match, but a same device file may
+         have different path, for example:
+          '/dev/sda1' and '../../sda1' { */
       if (strstr (list[index], pattern))
         {
           status = 1;
           break;
         }
+      /* } */
     }
 
   return status;
