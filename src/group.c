@@ -24,11 +24,19 @@
 #include "readfile.h"
 #include "say.h"
 #include "sort.h"
+#include "assert.h"
 #include "config.h"
 
-int
-cmpID (const void * const a, const void * const b)
+static int
+cmp (const void * const a, const void * const b)
 {
+  saymode_t mode = MODE_UNKNOWN;
+
+  sayMode (&mode);
+
+  ASSERT_ABORT (a, "a is NULL.\n");
+  ASSERT_ABORT (b, "b is NULL.\n");
+
   return *(int *)a - *(int *)b;
 }
 
@@ -38,36 +46,26 @@ cmpID (const void * const a, const void * const b)
 int
 addGroup (const char * const group)
 {
-  /* TODO: Avoid to use system command { *
-  char cmd[1 << 10];
-
-  memset (cmd, 0, sizeof (cmd) / sizeof (char));
-  strcpy (cmd, "env groupadd ");
-  strcat (cmd, SUDODEV_GROUP);
-
-  return !system (cmd);
-  * } then { */
-  FILE *fh;
-  char **list;
-  char *id;
-  int *ids;
-  char line[1 << 10];
-  char newID[1 << 10];
-  size_t len;
-  saymode_t mode;
-  int max;
-  int no;
-  int size;
-  int index, index2;
-  int area;
+  FILE *fh = NULL;
+  char **list = NULL;
+  char *id = NULL;
+  int *ids = NULL;
+  char line[1 << 10] = { 0 };
+  char newID[1 << 10] = { 0 };
+  size_t len = 0;
+  saymode_t mode = MODE_UNKNOWN;
+  int max = 0;
+  int no = 0;
+  int size = 0;
+  int index = 0, index2 = 0;
+  int area = 0;
   const char sep[] = ":";
 
-  if (!group)
-    {
-      return -1;
-    }
-
+  memset (line, 0, sizeof (line));
+  memset (newID, 0, sizeof (newID));
   sayMode (&mode);
+
+  ASSERT_RETURN (group, "group is NULL.\n", -1);
 
   if (readfile (GROUP_FILE, &list) < 1)
     {
@@ -107,7 +105,7 @@ addGroup (const char * const group)
 
   if (index2 > 1)
     {
-      if (-1 == msort (ids, index2, sizeof (int), cmpID))
+      if (-1 == msort (ids, index2, sizeof (int), cmp))
         {
           say (mode, MSG_E, "msort failed\n");
           return -1;
@@ -182,6 +180,5 @@ addGroup (const char * const group)
     }
 
   return 1;
-  /* } // End then */
 }
 

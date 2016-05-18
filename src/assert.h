@@ -1,5 +1,5 @@
 /* ========================================================================== *
- * Copyright (c) 2015-2016 秦凡东 (Qin Fandong)
+ * Copyright (c) 2015-2016 秦凡东(Qin Fandong)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,50 +14,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * ========================================================================== *
- * Operating /etc/group
+ * Do assert
  * ========================================================================== */
-#include <stdio.h>
-#include <string.h>
-#include <regex.h>
-#include <errno.h>
-#include "find.h"
-#include "readfile.h"
+#ifndef __ASSERT_H__
+#define __ASSERT_H__
+
+#include <libgen.h>
 #include "say.h"
-#include "config.h"
 
-int
-enableDropInFile (void)
-{
-  FILE *fh = NULL;
-  size_t len = 0;
-  saymode_t mode = 0;
-  const char pattern[] = "^#includedir[ \t]+/etc/sudoers.d";
-  const char rule[] = "#includedir /etc/sudoers.d\n";
+#define LOG(m,t,f,...)   \
+  ((say ((m), (t), "ASSERT FAILED in %4d of %s:\t(%s) - ",  \
+                      __LINE__, basename (__FILE__), __FUNCTION__)),  \
+  (say ((m), (t), (f), ##__VA_ARGS__)))
 
-  if (find (SUDOERS, pattern) > 0)
-    {
-      return 1;
-    }
+#define ASSERT_ABORT(e,s) \
+ ((e) ? (void)0 : ((LOG (mode, MSG_E, (s))), abort ()))
 
-  sayMode (&mode);
+#define ASSERT_LOG(e,s) \
+ ((e) ? (void)0 : ((LOG (mode, MSG_E, (s)))))
 
-  if (!(fh = fopen (SUDOERS, "a+")))
-    {
-      say (mode, MSG_E, "fopen failed: %s\n", strerror (errno));
-      return -1;
-    }
+#define ASSERT_RETURN(e,s,r)  \
+  { if (!(e)) { LOG (mode, MSG_E, (s)); return (r); } }
 
-  say (mode, MSG_I, "add rule to %s\n", SUDOERS);
-
-  len = strlen (rule);
-  if (fwrite (rule, sizeof (char), len, fh) < len)
-    {
-      say (mode, MSG_E, "fwrite failed: %s\n", strerror (errno));
-      return -1;
-    }
-
-  fclose (fh);
-
-  return 1;
-}
+#endif
 

@@ -27,28 +27,41 @@
 #include "sort.h"
 #include "find.h"
 #include "readfile.h"
+#include "assert.h"
 #include "config.h"
 
 int
-cmpStr (const void * const a, const void * const b)
+static cmp (const void * const a, const void * const b)
 {
+  saymode_t mode = MODE_UNKNOWN;
+
+  sayMode (&mode);
+
+  ASSERT_ABORT (a, "a is NULL.\n");
+  ASSERT_ABORT (b, "b is NULL.\n");
+
   return strcmp (*(char **)a, *(char **)b);
 }
 
 /* ========================================================================== *
  * Discern if string is a UUID (or a serial number for NTFS/(ex)?fat.*)
  * ========================================================================== */
-int
+static int
 isUUID (const char * const string)
 {
-  regmatch_t matches[1];
-  regex_t regex;
-  saymode_t mode;
-  char strerr[1 << 10];
-  int status;
+  regmatch_t matches[1] = { 0 };
+  regex_t regex = { 0 };
+  saymode_t mode = MODE_UNKNOWN;
+  char strerr[1 << 10] = { 0 };
+  int status = 0;
   const char pattern[] = "[^-0-9a-fA-F\n]";
 
+  memset (matches, 0, sizeof (matches));
+  memset (&regex, 0, sizeof (regex));
+  memset (strerr, 0, sizeof (strerr));
   sayMode (&mode);
+
+  ASSERT_RETURN (string, "string is NULL.\n", -1);
 
   if (!string)
     {
@@ -82,11 +95,12 @@ isUUID (const char * const string)
 int
 profileMode (void)
 {
-  FILE *fh;
-  struct stat statbuf;
-  saymode_t mode;
-  int status;
+  FILE *fh = NULL;
+  struct stat statbuf = { 0 };
+  saymode_t mode = MODE_UNKNOWN;
+  int status = 0;
 
+  memset (&statbuf, 0, sizeof (statbuf));
   sayMode (&mode);
 
   if (access (PROFILE, 0))
@@ -123,13 +137,15 @@ profileMode (void)
 int
 profileOverwrite (char ** const list)
 {
-  FILE *fh;
-  saymode_t mode;
-  size_t len;
-  int index;
-  int error, status;
+  FILE *fh = NULL;
+  saymode_t mode = MODE_UNKNOWN;
+  size_t len = 0;
+  int index = 0;
+  int error = 0, status = 0;
 
   sayMode (&mode);
+
+  ASSERT_RETURN (list, "list is NULL.\n", -1);
 
   if (!(fh = fopen (PROFILE, "w")))
     {
@@ -137,7 +153,6 @@ profileOverwrite (char ** const list)
       return -1;
     }
 
-  /* List should not be NULL here, no need to check */
   error = 0;
   for (index = 0; list[index]; ++index)
     {
@@ -176,19 +191,15 @@ profileOverwrite (char ** const list)
 int
 profileAddItem (const char * const item)
 {
-  char **list;
-  char *line;
-  saymode_t mode;
-  size_t len;
-  int index;
+  char **list = NULL;
+  char *line = NULL;
+  saymode_t mode = MODE_UNKNOWN;
+  size_t len = 0;
+  int index = 0;
 
   sayMode (&mode);
 
-  if (!item)
-    {
-      say (mode, MSG_E, "null pointer\n");
-      return -1;
-    }
+  ASSERT_RETURN (item, "item is NULL.\n", -1);
 
   profileMode ();
 
@@ -220,7 +231,7 @@ profileAddItem (const char * const item)
   list[len + 1] = NULL;
 
   /* Sort and write */
-  if (-1 == msort (list, len + 1, sizeof (char *), cmpStr))
+  if (-1 == msort (list, len + 1, sizeof (char *), cmp))
     {
       say (mode, MSG_E, "msort failed\n");
       return -1;
@@ -253,17 +264,22 @@ profileAddItem (const char * const item)
 int
 profileDelItem (const char * const pattern)
 {
-  regmatch_t matches[1];
-  regex_t regex;
+  regmatch_t matches[1] = { 0 };
+  regex_t regex = { 0 };
   char **list = NULL;
-  char **out;
-  char strerr[1 << 10];
-  saymode_t mode;
-  size_t len;
-  int index, index2;
-  int status;
+  char **out = NULL;
+  char strerr[1 << 10] = { 0 };
+  saymode_t mode = MODE_UNKNOWN;
+  size_t len = 0;
+  int index = 0, index2 = 0;
+  int status = 0;
 
+  memset (matches, 0 , 1 * sizeof (regmatch_t));
+  memset (&regex, 0, sizeof (regex_t));
+  memset (strerr, 0, 1 << 10);
   sayMode (&mode);
+
+  ASSERT_RETURN (pattern, "pattern is NULL.\n", -1);
 
   if (!pattern)
     {
@@ -315,7 +331,7 @@ profileDelItem (const char * const pattern)
 
   /* Sort and write */
   for (len = 0; out[len]; ++len);
-  if (-1 == msort (out, len, sizeof (char *), cmpStr))
+  if (-1 == msort (out, len, sizeof (char *), cmp))
     {
       say (mode, MSG_E, "msort failed\n");
       return -1;

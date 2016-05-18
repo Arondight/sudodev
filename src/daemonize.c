@@ -26,6 +26,7 @@
 #include <syslog.h>
 #include <sys/stat.h>
 #include <sys/resource.h>
+#include "assert.h"
 
 enum {
   STATUS_OK = 1,
@@ -35,17 +36,16 @@ enum {
 /* ========================================================================== *
  * Set mask to 0, let a new file may has any privilege
  * ========================================================================== */
-int
+static int
 setMask (void)
 {
-  umask (0);
-  return STATUS_OK;
+  return umask (0) ? STATUS_ERROR : STATUS_OK;
 }
 
 /* ========================================================================== *
  * Change work directory to root
  * ========================================================================== */
-int
+static int
 chrootdir (void)
 {
   const char * const rootdir = "/";
@@ -62,10 +62,10 @@ chrootdir (void)
 /* ========================================================================== *
  * Create a new session
  * ========================================================================== */
-int
+static int
 newSession (void)
 {
-  pid_t pid;
+  pid_t pid = 0;
 
   if ((pid = fork ()) < 0)
     {
@@ -90,11 +90,13 @@ newSession (void)
 /* ========================================================================== *
  * Disable controlling terminal
  * ========================================================================== */
-int
+static int
 noTTY (void)
 {
-  struct sigaction action;
-  pid_t pid;
+  struct sigaction action = { 0 };
+  pid_t pid = 0;
+
+  memset (&action, 0, sizeof (struct sigaction));
 
   action.sa_handler = SIG_IGN;
   sigemptyset (&action.sa_mask);
@@ -123,10 +125,13 @@ noTTY (void)
 /* ========================================================================== *
  * Close all file descriptor
  * ========================================================================== */
-int
+static int
 closeFD (void)
 {
-  struct rlimit limit;
+  struct rlimit limit = { 0 };
+  int fd = 0;
+
+  memset (&limit, 0, sizeof (struct rlimit));
 
   if (getrlimit (RLIMIT_NOFILE, &limit) < 0)
     {
@@ -134,7 +139,6 @@ closeFD (void)
       return STATUS_ERROR;
     }
 
-  int fd = 0;
   while (fd < (int)(RLIM_INFINITY == limit.rlim_max ? 1024 : limit.rlim_max))
     {
       close (fd++);
@@ -147,11 +151,11 @@ closeFD (void)
  * Reopen stdin, stdout and stderr to /dev/null
  * Invoke this after closeFD
  * ========================================================================== */
-int
+static int
 reopen (void)
 {
   const char * const nullFile = "/dev/null";
-  int in, out, err;
+  int in = 0, out = 0, err = 0;
 
   in = open (nullFile, O_RDWR);
   out = dup (in);
@@ -169,7 +173,7 @@ reopen (void)
 /* ========================================================================== *
  * Init log
  * ========================================================================== */
-int
+static int
 initLog (const char * const ident)
 {
   openlog (ident, LOG_CONS, LOG_DAEMON);
@@ -184,6 +188,8 @@ int
 daemonize (const char * const ident)
 {
   int status = 0;
+
+  /* Also work well when ident is NULL so here no need to check */
 
   status |= setMask ();
   status |= newSession ();

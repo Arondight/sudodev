@@ -17,16 +17,17 @@
  * Delete all of '\n' at end of string
  * ========================================================================== */
 #include <string.h>
+#include "assert.h"
 
 int
 chomp (char * const string)
 {
-  int index;
+  int index = 0;
+  saymode_t mode = MODE_UNKNOWN;
 
-  if (!string)
-    {
-      return -1;
-    }
+  sayMode (&mode);
+
+  ASSERT_RETURN (string, "string is NULL.\n", -1);
 
   for (index = strlen (string) - 1; index > -1; --index)
     {

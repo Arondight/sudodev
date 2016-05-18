@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include "say.h"
+#include "assert.h"
 #include "config.h"
 
 /* ========================================================================== *
@@ -31,9 +32,14 @@
 int
 lockfile (const int fd)
 {
-  struct flock lock;
+  saymode_t mode = MODE_UNKNOWN;
+  struct flock lock = { 0 };
 
   memset (&lock, 0, sizeof (lock));
+  sayMode (&mode);
+
+  ASSERT_RETURN (fd > -1, "fd is illegal.\n", -1);
+
   lock.l_type = F_WRLCK;
   lock.l_whence = SEEK_SET;
 
@@ -52,11 +58,12 @@ lockfile (const int fd)
 int
 hasLockfile (void)
 {
-  char pid[32];
-  saymode_t mode;
-  int fd;
+  char pid[1 << 5] = { 0 };
+  saymode_t mode = 0;
+  int fd = 0;
   const int LOCKMODE = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 
+  memset (pid, 0, sizeof (pid));
   sayMode (&mode);
 
   if ((fd = open (LOCKFILE, O_RDWR | O_CREAT, LOCKMODE)) < 0)

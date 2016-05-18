@@ -45,21 +45,25 @@
  * the actual file.
  * Thus, 0 is standard input, 1 standard output, 2 standard error, and so on.
  * ========================================================================== */
-int
+static int
 getSayMode (saymode_t * const mode)
 {
-  char path[MAXPATHLEN + 1], link[MAXPATHLEN + 1], file[MAXPATHLEN + 1];
-  char pid[1 << 10];
-  int index;
-  int size, len;
+  char path[MAXPATHLEN + 1] = { 0 },
+       link[MAXPATHLEN + 1] = { 0 },
+       file[MAXPATHLEN + 1] = { 0 };
+  char pid[1 << 10] = { 0 };
+  int index = 0;
+  int size = 0, len = 0;
   const int fds[] = {STDERR_FILENO, STDOUT_FILENO, STDERR_FILENO};
   const char root[] = "/proc/";
   const char null[] = "/dev/null";
 
   memset (path, 0, sizeof (path));
+  memset (link, 0, sizeof (link));
+  memset (file, 0, sizeof (path));
+  memset (pid, 0, sizeof (pid));
 
   /* /proc/[pid]/fd/ */
-  memset (pid, 0, sizeof (pid));
   sprintf (pid, "%d", getpid ());
   strcpy (path, root);
   len = strlen (path);
@@ -105,7 +109,7 @@ sayMode (saymode_t * const mode)
 {
   static saymode_t oneMode = MODE_UNKNOWN;
   static int hasSet = 0;
-  int status;
+  int status = 0;
 
   status = 1;
 
@@ -136,8 +140,8 @@ int
 say (const saymode_t mode, const saylevel_t level, const char * const str, ...)
 {
   va_list arg;
-  int out;
-  int priority;
+  int out = 0;
+  int priority = 0;
 
   if (!str)
     {

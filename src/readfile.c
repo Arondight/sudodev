@@ -23,19 +23,23 @@
 #include <errno.h>
 #include "chomp.h"
 #include "say.h"
+#include "assert.h"
 
 int
 readfile (const char * const path, char ***list)
 {
-  FILE *fd;
-  char **split;
-  char *in, *tmp;
-  saymode_t mode;
-  int begin, end;
-  int count, no;
-  int size;
+  FILE *fd = NULL;
+  char **split = NULL;
+  char *in = NULL, *tmp = NULL;
+  saymode_t mode = MODE_UNKNOWN;
+  int begin = 0, end = 0;
+  int count = 0, no = 0;
+  int size = 0;
 
   sayMode (&mode);
+
+  ASSERT_RETURN (path, "path is NULL.\n", -1);
+  ASSERT_RETURN (list, "list is NULL.\n", -1);
 
   *list = split = NULL;
 

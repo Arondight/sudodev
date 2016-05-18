@@ -21,27 +21,27 @@
 #include <regex.h>
 #include "readfile.h"
 #include "say.h"
+#include "assert.h"
 #include "config.h"
 
 int
 find (const char * const path, const char * const pattern)
 {
-  regmatch_t matches[1];
-  regex_t regex;
+  regmatch_t matches[1] = { 0 };
+  regex_t regex = { 0 };
   char **list = NULL;
-  char strerr[1 << 10];
-  saymode_t mode;
-  int status;
-  int index;
+  char strerr[1 << 10] = { 0 };
+  saymode_t mode = MODE_UNKNOWN;
+  int status = 0;
+  int index = 0;
   int find = 0;
 
+  memset (matches, 0, sizeof (matches));
+  memset (strerr, 0, sizeof (strerr));
   sayMode (&mode);
 
-  if (!path || !pattern)
-    {
-      say (mode, MSG_E, "find get illegal argument\n");
-      return -1;
-    }
+  ASSERT_RETURN (path, "path is NULL.\n", -1);
+  ASSERT_RETURN (pattern, "pattern is NULL.\n", -1);
 
   if (readfile (path, &list) < 1)
     {

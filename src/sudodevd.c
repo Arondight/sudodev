@@ -38,6 +38,7 @@
 #include "color.h"
 #include "lockfile.h"
 #include "readfile.h"
+#include "assert.h"
 #include "config.h"
 
 /* See config.h  { */
@@ -52,11 +53,13 @@
 static char **sudodevs = NULL;  /* UUID list of sudo device */
 static char **sysdevs = NULL;   /* UUID list of all devices */
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static saymode_t mode = MODE_UNKNOWN;
+#if MULTITHREAD
 static sigset_t mask;
-static saymode_t mode;
+#endif
 
-int
-cmpStr (const void * const a, const void * const b)
+static int
+cmp (const void * const a, const void * const b)
 {
   return strcmp (*(char **)a, *(char **)b);
 }
@@ -64,15 +67,15 @@ cmpStr (const void * const a, const void * const b)
 /* ========================================================================== *
  * Destroy a string list
  * ========================================================================== */
-int
+static int
 destoryList (char *** const addr)
 {
-  int index;
+  saymode_t mode = MODE_UNKNOWN;
+  int index = 0;
 
-  if (!addr)
-    {
-      return 1;
-    }
+  sayMode (&mode);
+
+  ASSERT_RETURN (addr, "addr is NULL.\n", -1);
 
   /* Free *addr */
   if (*addr)
@@ -91,7 +94,7 @@ destoryList (char *** const addr)
 /* ========================================================================== *
  * Destroy sudodevs
  * ========================================================================== */
-void
+static void
 cleanSudoDev (void)
 {
   destoryList (&sudodevs);
@@ -100,7 +103,7 @@ cleanSudoDev (void)
 /* ========================================================================== *
  * Destroy sysdevs
  * ========================================================================== */
-void
+static void
 cleanSysDev (void)
 {
   destoryList (&sysdevs);
@@ -109,10 +112,10 @@ cleanSysDev (void)
 /* ========================================================================== *
  * Do clean at last
  * ========================================================================== */
-int
+static int
 clean (void)
 {
-  int status;
+  int status = 0;
 
   status = 1;
 
@@ -141,10 +144,15 @@ clean (void)
 /* ========================================================================== *
  * Bind a signal to a handler
  * ========================================================================== */
-int
+static int
 actionBinding (const int signo, void (* const handler) (int))
 {
-  struct sigaction action;
+  struct sigaction action = { 0 };
+  saymode_t mode = MODE_UNKNOWN;
+
+  sayMode (&mode);
+
+  ASSERT_RETURN (handler, "handler is NULL.\n", -1);
 
   action.sa_handler = handler;
   sigemptyset (&action.sa_mask);
@@ -162,14 +170,9 @@ actionBinding (const int signo, void (* const handler) (int))
 /* ========================================================================== *
  * Handle SIGTERM
  * ========================================================================== */
-void
+static void
 sigtermHandler (const int signo)
 {
-  /* Useless, to ignore warning from syntastic plugin of vim { */
-  int trash = signo;
-  ++trash;
-  /* } */
-
   say (mode, MSG_I, "SIGTERM is received, quit\n");
 
   pthread_mutex_destroy(&mutex);
@@ -181,15 +184,11 @@ sigtermHandler (const int signo)
 /* ========================================================================== *
  * Handle SIGHUP
  * ========================================================================== */
-void
+static void
 sighupHandler (const int signo)
 {
-  char **list;
-  int index, index2;
-  /* Useless, to ignore warning from syntastic plugin of vim { */
-  int trash = signo;
-  ++trash;
-  /* } */
+  char **list = NULL;
+  int index = 0, index2 = 0;
 
   say (mode, MSG_I, "SIGHUP is received, reload config\n");
 
@@ -218,7 +217,7 @@ sighupHandler (const int signo)
     }
 
   for (index = 0; list[index]; ++index);
-  if (-1 == msort (list, index, sizeof (char **), cmpStr))
+  if (-1 == msort (list, index, sizeof (char **), cmp))
     {
       say (mode, MSG_E, "msort failed\n");
       /* Do nothing */
@@ -258,7 +257,7 @@ sighupHandler (const int signo)
 /* ========================================================================== *
  * Handle signals without a thread
  * ========================================================================== */
-int
+static int
 sighandle (void)
 {
   if (-1 == actionBinding (SIGTERM, sigtermHandler))
@@ -276,17 +275,14 @@ sighandle (void)
   return 1;
 }
 
+#if MULTITHREAD
 /* ========================================================================== *
  * A thread to handle signals
  * ========================================================================== */
-void *
+static void *
 sighandler (void *arg)
 {
-  int sig;
-
-  /* Useless, to ignore warning from syntastic plugin of vim { */
-  arg = (void *)arg;
-  /* } */
+  int sig = 0;
 
   while (1)
     {
@@ -313,11 +309,12 @@ sighandler (void *arg)
 
   return NULL;
 }
+#endif
 
 /* ========================================================================== *
  * Get all uuid of device via interface /dev/disk/by-uuid
  * ========================================================================== */
-int
+static int
 loadSysDev (void)
 {
   cleanSysDev ();
@@ -335,13 +332,13 @@ loadSysDev (void)
  * Write a rule to SUDO_CONF and make user in SUDODEV_GROUP
  * can run sudo without password
  * ========================================================================== */
-int
+static int
 inWork (void)
 {
-  FILE *fh;
-  char rule[1 << 10];
+  FILE *fh = NULL;
+  char rule[1 << 10] = { 0 };
+  int fd = 0;
   const char part[] = " ALL=(ALL) NOPASSWD: ALL\n";
-  int fd;
 
   /* Build a rule for sudoers */
   memset (rule, 0, sizeof (rule));
@@ -375,7 +372,7 @@ inWork (void)
 /* ========================================================================== *
  * Remove SUDO_CONF
  * ========================================================================== */
-int
+static int
 outWork (void)
 {
   if (!access (SUDO_CONF, 0))
@@ -394,14 +391,14 @@ outWork (void)
 /* ========================================================================== *
  * Main loop
  * ========================================================================== */
-void
+static void
 eventloop (void)
 {
-  char **all;
-  int work;       /* Status will change to */
-  int working;    /* Current status */
-  int index, index2;
-  int len;
+  char **all = NULL;
+  int work = 0;       /* Status will change to */
+  int working = 0;    /* Current status */
+  int index = 0, index2 = 0;
+  int len = 0;
 
   working = 0;
 
@@ -413,21 +410,6 @@ eventloop (void)
           exit (1);
         }
 
-      /* TODO: Use a better algorithm to find match uuid { *
-      work = 0;
-      for (index = 0; sysdevs && sysdevs[index]; ++index)
-        {
-          for (index2 = 0; sudodevs && sudodevs[index2]; ++index2)
-            {
-              if (!strcmp (sysdevs[index], sudodevs[index2]))
-                {
-                  work = 1;
-                  goto OUT;
-                }
-            }
-        }
-OUT:
-      * } then { */
       pthread_mutex_lock (&mutex);
 
       for (index = 0; sysdevs[index]; ++index);
@@ -447,7 +429,7 @@ OUT:
           memcpy (all + index, sudodevs, index2 * sizeof (char *));
         }
 
-      if (-1 == msort (all, len, sizeof (char *), cmpStr))
+      if (-1 == msort (all, len, sizeof (char *), cmp))
         {
           say (mode, MSG_E, "msort failed\n");
           continue;
@@ -476,7 +458,6 @@ OUT:
           free (all);
           all = NULL;
         }
-      /* }  // End then */
 
       if (work != working)
         {
@@ -493,10 +474,13 @@ OUT:
 int
 main (const int argc, const char * const * const argv)
 {
-  char pattern[1 << 10];
-  char name[MAXPATHLEN + 1];
-  char *str, *ident;
-  int hasLock;
+  char pattern[1 << 10] = { 0 };
+  char name[MAXPATHLEN + 1] = { 0 };
+  char *str = NULL, *ident = NULL;
+  int hasLock = 0;
+
+  memset (pattern, 0, sizeof (pattern));
+  memset (name, 0, sizeof (name));
 
   /* Check uid  */
   if (getuid ())

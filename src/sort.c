@@ -21,19 +21,20 @@
 #include <string.h>
 #include <errno.h>
 #include "say.h"
+#include "assert.h"
 
 /* ========================================================================== *
  * Merge 2 part
  * ========================================================================== */
-int
+static int
 merge (void * const part1, const size_t p1Len,
        const void * const part2, const size_t p2Len,
        const size_t size,
        int (* const cmp) (const void * const, const void * const))
 {
-  char *tmp;
-  char *p1, *p2;
-  size_t index, index2, index3;
+  char *tmp = NULL;
+  char *p1 = NULL, *p2 = NULL;
+  size_t index = 0, index2 = 0, index3 = 0;
 
   p1 = (char *)part1;
   p2 = (char *)part2;
@@ -95,15 +96,16 @@ int
 msort (void * const data, const size_t items, const size_t size,
        int (* const cmp) (const void * const, const void * const))
 {
-  char *p1;
-  char *p2;
-  size_t p1Len;
-  size_t p2Len;
+  char *p1 = NULL;
+  char *p2 = NULL;
+  size_t p1Len = 0;
+  size_t p2Len = 0;
+  saymode_t mode = MODE_UNKNOWN;
 
-  if (!(data && cmp))
-    {
-      return -1;
-    }
+  sayMode (&mode);
+
+  ASSERT_RETURN (data, "data is NULL.\n", -1);
+  ASSERT_RETURN (cmp, "cmp is NULL.\n", -1);
 
   if (items > 1 && size > 0)
     {

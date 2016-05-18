@@ -3,20 +3,22 @@
 # This to build project
 # ==============================================================================
 
-curdir=$(dirname $(readlink -f $0))
-builddir=$curdir/build
+RDIR=$(dirname $(readlink -f $0))
+BUILDDIR=${RDIR}/build
 
-function build {
-  mkdir -p $builddir  \
-    && cd $builddir \
+function build ()
+{
+  mkdir -p $BUILDDIR  \
+    && cd $BUILDDIR \
     && cmake -DCMAKE_BUILD_TYPE=Release ..  \
-    && make -j4
+    && cmake --build . --config Release -- -j4
 
   return $?
 }
 
-function install {
-  cd $builddir  \
+function install ()
+{
+  cd $BUILDDIR  \
     && sudo make install -j4
 
   return $?
@@ -24,7 +26,8 @@ function install {
 
 build
 
-if [[ 0 -eq $? && 'install' == $1 ]]; then
+if [[ 0 -eq $? && 'install' == $1 ]]
+then
   install
 fi
 

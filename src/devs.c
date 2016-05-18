@@ -30,6 +30,7 @@
 #include "say.h"
 #include "find.h"
 #include "readfile.h"
+#include "assert.h"
 #include "config.h"
 
 static char **list = NULL;
@@ -38,21 +39,23 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 /* ========================================================================== *
  * Return loacl devices
  * ========================================================================== */
-int
+static int
 localDevs (void)
 {
   char **text = NULL;
   char *pos = NULL;
-  char path[MAXPATHLEN + 1], buff[MAXPATHLEN + 1];
-  saymode_t mode;
-  int uuid2path, label2path;
-  int index, index2;
-  int no;
-  int len;
-  int chr;
+  char path[MAXPATHLEN + 1] = { 0 }, buff[MAXPATHLEN + 1] = { 0 };
+  saymode_t mode = MODE_UNKNOWN;
+  int uuid2path = 0, label2path = 0;
+  int index = 0, index2 = 0;
+  int no = 0;
+  int len = 0;
+  int chr = 0;
   const char uuidInterface[] = "/dev/disk/by-uuid";
   const char labelInterface[] = "/dev/disk/by-label";
 
+  memset (path, 0, sizeof (path));
+  memset (buff, 0, sizeof (buff));
   sayMode (&mode);
 
   if (list)
@@ -181,16 +184,19 @@ localDevs (void)
 /* ========================================================================== *
  * Determine whether a devPath is a local device
  * ========================================================================== */
-int
+static int
 isLocalDev (const char * const devPath)
 {
-  char *pattern;
-  char buff[MAXPATHLEN + 1];
-  saymode_t mode;
-  int index;
-  int status;
+  char *pattern = NULL;
+  char buff[MAXPATHLEN + 1] = { 0 };
+  saymode_t mode = MODE_UNKNOWN;
+  int index = 0;
+  int status = 0;
 
+  memset (buff, 0, sizeof (buff));
   sayMode (&mode);
+
+  ASSERT_RETURN (devPath, "devPath is NULL.\n", -1);
 
   strncpy (buff, devPath, MAXPATHLEN);
   pattern = basename (buff);
@@ -203,16 +209,6 @@ isLocalDev (const char * const devPath)
           pattern[index] = 0;
         }
     }
-
-  /* TODO: Use a faster way to search FSTAB { *
-  if (-1 == (status = find (FSTAB, pattern)))
-    {
-      say (mode, MSG_E, "find failed\n");
-      return -1;
-    }
-
-  return status;
-  * } */
 
   localDevs ();
 
@@ -233,16 +229,20 @@ isLocalDev (const char * const devPath)
 int
 devs (char ***addr)
 {
-  DIR *dh;
-  struct dirent *dir;
-  char **uuids;
-  char buff[MAXPATHLEN + 1], dev[MAXPATHLEN + 1];
-  size_t len;
-  saymode_t mode;
-  int no, count;
+  DIR *dh = NULL;
+  struct dirent *dir = NULL;
+  char **uuids = NULL;
+  char buff[MAXPATHLEN + 1] = { 0 }, dev[MAXPATHLEN + 1] = { 0 };
+  size_t len = 0;
+  saymode_t mode = 0;
+  int no = 0, count = 0;
   const char interface[] = "/dev/disk/by-uuid";
 
+  memset (buff, 0, sizeof (buff));
+  memset (dev, 0, sizeof (dev));
   sayMode (&mode);
+
+  ASSERT_RETURN (addr, "addr is NULL.\n", -1);
 
   if (!(dh = opendir (interface)))
     {

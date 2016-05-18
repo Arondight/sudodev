@@ -32,6 +32,7 @@
 #include "sort.h"
 #include "readfile.h"
 #include "profile.h"
+#include "assert.h"
 #include "config.h"
 
 #define SHORTUUIDLEN (8)
@@ -45,21 +46,24 @@ typedef struct device
 } device_t;
 
 static device_t **devices = NULL;
-static saymode_t mode;
+static saymode_t mode = MODE_UNKNOWN;
 
-int
-cmpDeviceName (const void * const a, const void * const b)
+static int
+cmp (const void * const a, const void * const b)
 {
+  ASSERT_ABORT (a, "a is NULL.\n");
+  ASSERT_ABORT (b, "b is NULL.\n");
+
   return strcmp ((*(device_t **)a)->name, (*(device_t **)b)->name);
 }
 
 /* ========================================================================== *
  * Show usage
  * ========================================================================== */
-int
+static int
 usage (void)
 {
-  int line;
+  int line = 0;
   const char * const text[] =
     {
       "This is sudodev, version ", VERSION, "\n",
@@ -87,13 +91,19 @@ usage (void)
 /* ========================================================================== *
  * Discern if string is a number (interger)
  * ========================================================================== */
-int
+static int
 isNO (const char * const string)
 {
-  regmatch_t matches[1];
-  regex_t regex;
-  char strerr[1 << 10];
-  int status;
+  regmatch_t matches[1] = { 0 };
+  regex_t regex = { 0 };
+  char strerr[1 << 10] = { 0 };
+  int status = 0;
+
+  memset (matches, 0, sizeof (matches));
+  memset (&regex, 0, sizeof (regex));
+  memset (strerr, 0, sizeof (strerr));
+
+  ASSERT_RETURN (string, "string is NULL.\n", -1);
 
   if (!string)
     {
@@ -127,11 +137,11 @@ isNO (const char * const string)
 /* ========================================================================== *
  * Send SIGHUP to daemon
  * ========================================================================== */
-int
+static int
 reload (void)
 {
-  char **list;
-  pid_t pid;
+  char **list = NULL;
+  pid_t pid = 0;
 
   if (readfile (LOCKFILE, &list) < 1)
     {
@@ -159,19 +169,22 @@ reload (void)
 /* ========================================================================== *
  * Add a device to config file
  * ========================================================================== */
-int
+static int
 add (void)
 {
-  char **list;
-  char **uuids;
-  char path[MAXPATHLEN + 1];
-  char buff[MAXPATHLEN + 1];
-  int devicesLen;
-  int index, index2, count;
-  int no;
-  int status, error;
-  int next;
+  char **list = NULL;
+  char **uuids = NULL;
+  char path[MAXPATHLEN + 1] = { 0 };
+  char buff[MAXPATHLEN + 1] = { 0 };
+  int devicesLen = 0;
+  int index = 0, index2 = 0, count = 0;
+  int no = 0;
+  int status = 0, error = 0;
+  int next = 0;
   const char interface[] = "/dev/disk/by-uuid";
+
+  memset (path, 0, sizeof (path));
+  memset (buff, 0, sizeof (buff));
 
   if (-1 == devs (&list))
     {
@@ -245,7 +258,7 @@ add (void)
 
   devicesLen = count;
 
-  if (-1 == msort (devices, devicesLen, sizeof (device_t *), cmpDeviceName))
+  if (-1 == msort (devices, devicesLen, sizeof (device_t *), cmp))
     {
       say (mode, MSG_E, "msort failed\n");
       error = 1;
@@ -390,17 +403,20 @@ CLEAN:
 /* ========================================================================== *
  * Delete a device from config file
  * ========================================================================== */
-int
+static int
 del (void)
 {
-  char **list;
-  char path[MAXPATHLEN + 1];
-  char buff[MAXPATHLEN + 1];
-  int devicesLen;
-  int no;
-  int index;
-  int status, error;
+  char **list = NULL;
+  char path[MAXPATHLEN + 1] = { 0 };
+  char buff[MAXPATHLEN + 1] = { 0 };
+  int devicesLen = 0;
+  int no = 0;
+  int index = 0;
+  int status = 0, error = 0;
   const char interface[] = "/dev/disk/by-uuid";
+
+  memset (path, 0, sizeof (path));
+  memset (buff, 0, sizeof (buff));
 
   if (access (PROFILE, 0))
     {
@@ -476,7 +492,7 @@ del (void)
 
   devicesLen = index;
 
-  if (-1 == msort (devices, devicesLen, sizeof (device_t *), cmpDeviceName))
+  if (-1 == msort (devices, devicesLen, sizeof (device_t *), cmp))
     {
       say (mode, MSG_E, "msort failed\n");
       error = 1;
@@ -619,15 +635,23 @@ CLEAN:
 /* ========================================================================== *
  * Attempt call a handle if text mathed pattern
  * ========================================================================== */
-int
+static int
 attempt (const char * const pattern,
          const char * const text,
          int (* const handle) (void))
 {
-  regmatch_t matches[1];
-  regex_t regex;
-  char strerr[1 << 10];
-  int status;
+  regmatch_t matches[1] = { 0 };
+  regex_t regex = { 0 };
+  char strerr[1 << 10] = { 0 };
+  int status = 0;
+
+  memset (matches, 0, sizeof (matches));
+  memset (&regex, 0, sizeof (regex));
+  memset (strerr, 0, sizeof (strerr));
+
+  ASSERT_RETURN (pattern, "pattern is NULL.\n", -1);
+  ASSERT_RETURN (text, "text is NULL.\n", -1);
+  ASSERT_RETURN (handle, "handle is NULL.\n", -1);
 
   if ((status = regcomp (&regex, pattern, REG_EXTENDED | REG_ICASE)) < 0)
     {
@@ -658,8 +682,8 @@ attempt (const char * const pattern,
 int
 main (const int argc, const char * const * const argv)
 {
-  char *action;
-  int status = 0, error;
+  char *action = NULL;
+  int status = 0, error = 0;
 
   sayMode (&mode);
 
