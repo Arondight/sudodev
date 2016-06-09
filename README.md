@@ -10,7 +10,7 @@ This allows you to choose some devices (identify by [UUID][ID_UUID]), so that wh
 
 # INSTALL
 
-```shell
+```
 git clone https://github.com/Arondight/sudodev.git sudodev
 cd sudodev
 ./install.sh
@@ -18,10 +18,9 @@ cd sudodev
 
 # USAGE
 
-> sudodev [add|del]
->
->  add:  add a device for none-password sudo
->  del:  delete a device from configure file
+```bash
+sudo sudodev
+```
 
 # NOTICE
 
