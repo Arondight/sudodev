@@ -39,7 +39,8 @@ enum {
 static int
 setMask (void)
 {
-  return umask (0) ? STATUS_ERROR : STATUS_OK;
+  umask (0);
+  return STATUS_OK;
 }
 
 /* ========================================================================== *

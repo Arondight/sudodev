@@ -1,10 +1,6 @@
-This directory contains init scripts for systemd, Upstart, SysVinit and BSD init.
+This is what CMakelist.txt in this direcotry will do.
 
-CMake will ignore this directory, because there is no simple way to indentify
-which init program you are using (not only installed), no matter via
-"/proc/1/exe", "/dev/initctl", etc. So you need to do this manually.
-
-You need to copy corresponding files to target directory:
+At the very beginning cmake try to copy corresponding files to target directory:
 
   ---------------------------------------------------------------------------
   | init program    | script file                 | target directory        |
@@ -15,28 +11,27 @@ You need to copy corresponding files to target directory:
   | BSD init        | ./bsd/rc.sudodevd           | /etc/rc.d/              |
   ---------------------------------------------------------------------------
 
-If you are new to linux world, here is what you should do accroding to your
-init program is:
+Then cmake will do something accroding to your init program is:
 
   1. systemd (for example, Arch Linux, Ubuntu 14.X+, Debian 6.0+, openSUSE 11.4+
               Fedora 16+, CentOS 6.X+ and Red Hat Enterprise Linux 6.X+)
 
     Reload daemons config:
-      sudo systemctl daemon-reload
+      systemctl daemon-reload
 
     Set start targets:
-      sudo systemctl enable sudodevd
+      systemctl enable sudodevd
 
     Start it now:
-      sudo systemctl start sudodevd
+      systemctl start sudodevd
 
   2. Upstart (for example, ealier versions of Ubuntu and Debian)
 
     Reload daemons config:
-      sudo initctl reload-configuration
+      initctl reload-configuration
 
     Start it now:
-      sudo initctl start sudodevd
+      initctl start sudodevd
 
     Start/stop runlevels has been set on sudodevd.conf, it is no need to set
     autostart manually.
@@ -45,31 +40,35 @@ init program is:
 
     Set start/stop runlevels:
       echo -n /etc/rc{2,3,4,5}.d/S60sudodevd | \
-        xargs -d ' ' -I{} sudo ln -s /etc/init.d/sudodevd {}
+        xargs -d ' ' -I{} ln -s /etc/init.d/sudodevd {}
       echo -n /etc/rc{0,1,6}.d/K60sudodevd | \
-        xargs -d ' ' -I{} sudo ln -s /etc/init.d/sudodevd {}
+        xargs -d ' ' -I{} ln -s /etc/init.d/sudodevd {}
 
     Set to executable:
-      sudo chmod 755 /etc/init.d/sudodevd
+      chmod 755 /etc/init.d/sudodevd
 
     Start it now:
-      sudo /etc/init.d/sudodevd start
+      /etc/init.d/sudodevd start
 
   4. BSD init (for exmaple, Slackware Linux)
 
     For BSD init, it is a bit complicated, you can not configure these by
-    conmands. You have to write lines in suitable location of files manually.
+    conmands. You have to write lines in suitable location of files manually
+    to set start/stop runlevels:
 
-    Set start/stop runlevels:
-      Write the line below to /etc/rc.d/rc.4 and /etc/rc.d/rc.M:
-        [ -x /etc/rc.d/rc.sudodevd ] && /etc/rc.d/rc.sudodevd start
+    For /etc/rc.d/rc.4 and /etc/rc.d/rc.M:
+      [ -x /etc/rc.d/rc.sudodevd ] && /etc/rc.d/rc.sudodevd start
 
-      Write the line below to /etc/rc.d/rc.0, /etc/rc.d/rc.6 and /etc/rc.d/rc.K:
-        [ -x /etc/rc.d/rc.sudodevd ] && /etc/rc.d/rc.sudodevd stop
+    For /etc/rc.d/rc.0, /etc/rc.d/rc.6 and /etc/rc.d/rc.K:
+      [ -x /etc/rc.d/rc.sudodevd ] && /etc/rc.d/rc.sudodevd stop
 
     Set to executable:
-      sudo chmod 755 /etc/rc.d/rc.sudodevd
+      chmod 755 /etc/rc.d/rc.sudodevd
 
     Start it now:
-      sudo /etc/rc.d/rc.sudodevd start
+      /etc/rc.d/rc.sudodevd start
+
+At last cmake try to add current user to sudodev group:
+
+  gpasswd -a $USER sudodev
 
