@@ -43,5 +43,6 @@ elseif (IS_DIRECTORY ${BSDINIT_DIR})
   execute_process (COMMANDsudo ${BSDINIT_DIR}/rc.sudodevd start)
 endif ()
 
-execute_process (COMMAND gpasswd -a $ENV{USER} sudodev)
+execute_process (COMMAND stat -c %U ${CMAKE_CURRENT_LIST_DIR} OUTPUT_VARIABLE USER OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process (COMMAND gpasswd -a ${USER} sudodev)
 
