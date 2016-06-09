@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.6 FATAL_ERROR)
 
 set (CMAKE_C_COMPILER "gcc")
 set (CMAKE_C_FLAGS "-Wall -lpthread")
@@ -9,15 +9,15 @@ set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set (INIT_SCRIPT_PATH ${PROJECT_SOURCE_DIR}/init)
 set (SOURCE_PATH ${PROJECT_SOURCE_DIR}/src)
 
+if(NOT UNIX)
+  message (FATAL_ERROR "Only Unix-like system is supported, quit.")
+endif ()
+
 include_directories (${SOURCE_PATH})
 
 add_subdirectory (${SOURCE_PATH})
 add_subdirectory (${INIT_SCRIPT_PATH})
 
-set (
-  BINARYS
-  ${PROJECT_SOURCE_DIR}/bin/sudodev
-  ${PROJECT_SOURCE_DIR}/bin/sudodevd
-)
+set (BINARYS ${EXECUTABLE_OUTPUT_PATH}/sudodev ${EXECUTABLE_OUTPUT_PATH}/sudodevd)
 install (PROGRAMS ${BINARYS} DESTINATION /usr/bin)
 
