@@ -19,7 +19,7 @@ cd sudodev
 # USAGE
 
 ```bash
-sudo sudodev
+sudodev help
 ```
 
 # NOTICE

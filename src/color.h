@@ -19,10 +19,10 @@
 #ifndef __COLOR_H__
 #define __COLOR_H__
 
-#define MAX_COLOR_STR_LEN (1 << 3)
+#include "say.h"
 
-/* Make color string */
-int makeColor (char **addr, const char * const color, ...);
+#define MAX_COLOR_STR_LEN (1 << 3)
+#define TRY_COLOR(m,c)  (MODE_OUT == (m) ? (c) : "")
 
 /* ========================================================================== *
  * Table Of All Colors

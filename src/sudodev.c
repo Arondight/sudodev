@@ -39,6 +39,8 @@
 #define UNKNOWNSTR ("Unknown")
 #define UNKNOWNSTRLEN (7)
 
+#define COLORIT(c)  (TRY_COLOR (mode, (c)))
+
 typedef struct device
 {
   char name[MAXPATHLEN + 1];
@@ -80,9 +82,7 @@ usage (void)
   for (line = 0; text[line]; ++line)
     {
       say (mode, MSG_I, "%s%s%s",
-                        MODE_OUT == mode ? C_BBLUE : "",
-                        text[line],
-                        MODE_OUT == mode ? C_NORMAL : "");
+            COLORIT (C_BBLUE), text[line], COLORIT (C_NORMAL));
     }
 
   return 1;
@@ -92,7 +92,7 @@ usage (void)
  * Discern if string is a number (interger)
  * ========================================================================== */
 static int
-isNO (const char * const string)
+isNumber (const char * const string)
 {
   regmatch_t matches[1] = { 0 };
   regex_t regex = { 0 };
@@ -149,7 +149,7 @@ reload (void)
       return -1;
     }
 
-  if (!list || !*list || !isNO (*list))
+  if (!list || !*list || !isNumber (*list))
     {
       say (mode, MSG_E, "get pid failed\n");
       return -1;
@@ -267,17 +267,9 @@ add (void)
 
   for (index = 0; devices[index]; ++index)
     {
-      if (MODE_OUT == mode)
-        {
-          say (mode, MSG_I, "[%s%3d%s]  %s%s%s\n",
-                            C_BGREEN, index + 1, C_NORMAL,
-                            C_BYELLOW, devices[index]->name, C_NORMAL);
-        }
-      else
-        {
-          say (mode, MSG_I, "[%3d]  %s\n",
-                            index + 1, devices[index]->name);
-        }
+      say (mode, MSG_I, "[%s%3d%s]  %s%s%s\n",
+            COLORIT (C_BGREEN), index + 1, COLORIT (C_NORMAL),
+            COLORIT (C_BYELLOW), devices[index]->name, COLORIT (C_NORMAL));
     }
 
   count = index;
@@ -285,8 +277,7 @@ add (void)
   if (count < 1)
     {
       say (mode, MSG_W, "%sNo available device found%s\n",
-                        MODE_OUT == mode ? C_BCYAN : "",
-                        MODE_OUT == mode ? C_NORMAL : "");
+            COLORIT (C_BCYAN), COLORIT (C_NORMAL));
       error = 0;
       goto CLEAN;
     }
@@ -294,8 +285,7 @@ add (void)
   while (1)
     {
       say (mode, MSG_I, "Choose a device (%sq to quit%s): ",
-                        MODE_OUT == mode ? C_BPURPLE : "",
-                        MODE_OUT == mode ? C_NORMAL : "");
+            COLORIT (C_BPURPLE), COLORIT (C_NORMAL));
 
       if (!fgets (buff, (1 << 10) - 1, stdin))
         {
@@ -307,14 +297,12 @@ add (void)
 
       if ('q' == *buff)
         {
-          say (mode, MSG_I, "%squit%s\n",
-                            MODE_OUT == mode ? C_BRED : "",
-                            MODE_OUT == mode ? C_NORMAL : "");
+          say (mode, MSG_I, "%squit%s\n", COLORIT (C_BRED), COLORIT (C_NORMAL));
           error = 0;
           goto CLEAN;
         }
 
-      if (-1 == (status = isNO (buff)) || !status)
+      if (-1 == (status = isNumber (buff)) || !status)
         {
           continue;
         }
@@ -332,38 +320,27 @@ add (void)
   error = 0;
 
   say (mode, MSG_I, "%sadding device%s...",
-                    MODE_OUT == mode ? C_BCYAN : "",
-                    MODE_OUT == mode ? C_NORMAL : "");
+        COLORIT (C_BCYAN), COLORIT (C_NORMAL));
   if (-1 == profileAddItem (devices[no - 1]->uuid))
     {
-      say (mode, MSG_I, "%sfailed%s\n",
-                        MODE_OUT == mode ? C_BGRED : "",
-                        MODE_OUT == mode ? C_NORMAL : "");
+      say (mode, MSG_I, "%sfailed%s\n", COLORIT (C_BGRED), COLORIT (C_NORMAL));
       error = 1;
       goto CLEAN;
     }
-  say (mode, MSG_I, "%sdone%s\n",
-                    MODE_OUT == mode ? C_BGGREEN : "",
-                    MODE_OUT == mode ? C_NORMAL : "");
+  say (mode, MSG_I, "%sdone%s\n", COLORIT (C_BGGREEN), COLORIT (C_NORMAL));
 
   say (mode, MSG_I, "%sreloading config...%s",
-                    MODE_OUT == mode ? C_BCYAN : "",
-                    MODE_OUT == mode ? C_NORMAL : "");
+                    COLORIT (C_BCYAN), COLORIT (C_NORMAL));
   if (-1 == reload ())
     {
-      say (mode, MSG_I, "%sfailed%s\n",
-                        MODE_OUT == mode ? C_BGRED : "",
-                        MODE_OUT == mode ? C_NORMAL : "");
+      say (mode, MSG_I, "%sfailed%s\n", COLORIT (C_BGRED), COLORIT (C_NORMAL));
       say (mode, MSG_I, "%syou can reload config of sudodevd "
                         "using init tools (like systemctl) manually%s\n",
-                        MODE_OUT == mode ? C_BRED : "",
-                        MODE_OUT == mode ? C_NORMAL : "");
+            COLORIT (C_BRED),COLORIT (C_NORMAL));
       error = 1;
       goto CLEAN;
     }
-  say (mode, MSG_I, "%sdone%s\n",
-                    MODE_OUT == mode ? C_BGGREEN : "",
-                    MODE_OUT == mode ? C_NORMAL : "");
+  say (mode, MSG_I, "%sdone%s\n", COLORIT (C_BGGREEN), COLORIT (C_NORMAL));
 
 CLEAN:
   if (list)
@@ -420,17 +397,10 @@ del (void)
 
   if (access (PROFILE, 0))
     {
-      if (MODE_OUT == mode)
-        {
-          say (mode, MSG_E,
-               "%sConfig file not exist, run %s\"sudodev add\"%s first.%s\n",
-               C_BRED, C_BGREEN, C_BRED, C_NORMAL);
-        }
-      else
-        {
-          say (mode, MSG_E,
-               "Config file not exist, run \"sudodev add\" first.\n");
-        }
+      say (mode, MSG_E,
+            "%sConfig file not exist, run %s\"sudodev add\"%s first.%s\n",
+            COLORIT (C_BRED), COLORIT (C_BGREEN),
+            COLORIT (C_BRED), COLORIT (C_NORMAL));
       return 0;
     }
 
@@ -443,8 +413,7 @@ del (void)
   if (!list)
     {
       say (mode, MSG_E, "%sNo device found in config file, quit.%s\n",
-                        MODE_OUT == mode ? C_BRED : "",
-                        MODE_OUT == mode ? C_NORMAL : "");
+            COLORIT (C_BRED), COLORIT (C_NORMAL));
       return 0;
     }
 
@@ -502,32 +471,22 @@ del (void)
   if (!index)
     {
       say (mode, MSG_I, "%sNo available device found%s\n",
-                        MODE_OUT == mode ? C_BRED : "",
-                        MODE_OUT == mode ? C_NORMAL : "");
+            COLORIT (C_BRED), COLORIT (C_NORMAL));
       error = 0;
       goto CLEAN;
     }
 
   for (index = 0; devices[index]; ++index)
     {
-      if (MODE_OUT == mode)
-        {
-          say (mode, MSG_I, "[%s%3d%s]  %s%s%s",
-                            C_BGREEN, index + 1, C_NORMAL,
-                            C_BYELLOW, devices[index]->name, C_NORMAL);
-        }
-      else
-        {
-          say (mode, MSG_I, "[%3d]  %s", index + 1, devices[index]->name);
-        }
+      say (mode, MSG_I, "[%s%3d%s]  %s%s%s",
+            COLORIT (C_BGREEN), index + 1, COLORIT (C_NORMAL),
+            COLORIT (C_BYELLOW), devices[index]->name, COLORIT (C_NORMAL));
 
       if (!(strncmp (UNKNOWNSTR, devices[index]->name, UNKNOWNSTRLEN)))
         {
           strncpy (buff, devices[index]->uuid, 8);
           say (mode, MSG_I, "\t->  %s%s%s...\n",
-                            MODE_OUT == mode ? C_BRED : "",
-                            buff,
-                            MODE_OUT == mode ? C_NORMAL : "");
+                COLORIT (C_BRED), buff, COLORIT (C_NORMAL));
         }
       else
         {
@@ -538,8 +497,7 @@ del (void)
    while (1)
     {
       say (mode, MSG_I, "Choose a device (%sq to quit%s): ",
-                        MODE_OUT == mode ? C_BPURPLE : "",
-                        MODE_OUT == mode ? C_NORMAL : "");
+            COLORIT (C_BPURPLE), COLORIT (C_NORMAL));
       if (!fgets (buff, (1 << 10) - 1, stdin))
         {
           say (mode, MSG_E, "fgets failed: %s\n", strerror (errno));
@@ -550,14 +508,12 @@ del (void)
 
       if ('q' == *buff)
         {
-          say (mode, MSG_I, "%squit%s\n",
-                            MODE_OUT == mode ? C_BRED : "",
-                            MODE_OUT == mode ? C_NORMAL : "");
+          say (mode, MSG_I, "%squit%s\n", COLORIT (C_BRED), COLORIT (C_NORMAL));
           error = 0;
           goto CLEAN;
         }
 
-      if (-1 == (status = isNO (buff)) || !status)
+      if (-1 == (status = isNumber (buff)) || !status)
         {
           continue;
         }
@@ -575,38 +531,27 @@ del (void)
   error = 0;
 
   say (mode, MSG_I, "%sdeleting device%s...",
-                    MODE_OUT == mode ? C_BCYAN : "",
-                    MODE_OUT == mode ? C_NORMAL : "");
+        COLORIT (C_BCYAN), COLORIT (C_NORMAL));
   if (-1 == profileDelItem (devices[no - 1]->uuid))
     {
-      say (mode, MSG_I, "%sfailed%s\n",
-                        MODE_OUT == mode ? C_BGRED : "",
-                        MODE_OUT == mode ? C_NORMAL : "");
+      say (mode, MSG_I, "%sfailed%s\n", COLORIT (C_BGRED), COLORIT (C_NORMAL));
       error = 1;
       goto CLEAN;
     }
-  say (mode, MSG_I, "%sdone%s\n",
-                    MODE_OUT == mode ? C_BGGREEN : "",
-                    MODE_OUT == mode ? C_NORMAL : "");
+  say (mode, MSG_I, "%sdone%s\n", COLORIT (C_BGGREEN), COLORIT (C_NORMAL));
 
   say (mode, MSG_I, "%sreloading config%s...",
-                    MODE_OUT == mode ? C_BCYAN : "",
-                    MODE_OUT == mode ? C_NORMAL : "");
+        COLORIT (C_BCYAN), COLORIT (C_NORMAL));
   if (-1 == reload ())
     {
-      say (mode, MSG_I, "%sfailed%s\n",
-                        MODE_OUT == mode ? C_BGRED : "",
-                        MODE_OUT == mode ? C_NORMAL : "");
+      say (mode, MSG_I, "%sfailed%s\n", COLORIT (C_BGRED), COLORIT (C_NORMAL));
       say (mode, MSG_I, "%syou can reload config of sudodevd "
                         "using init tools (like systemctl) manually%s\n",
-                        MODE_OUT == mode ? C_BRED : "",
-                        MODE_OUT == mode ? C_NORMAL : "");
+            COLORIT (C_BRED), COLORIT (C_NORMAL));
       error = 1;
       goto CLEAN;
     }
-  say (mode, MSG_I, "%sdone%s\n",
-                    MODE_OUT == mode ? C_BGGREEN : "",
-                    MODE_OUT == mode ? C_NORMAL : "");
+  say (mode, MSG_I, "%sdone%s\n", COLORIT (C_BGGREEN), COLORIT (C_NORMAL));
 
 CLEAN:
   if (list)
@@ -687,26 +632,9 @@ main (const int argc, const char * const * const argv)
 
   sayMode (&mode);
 
-  /* Check uid  */
-  if (getuid ())
-    {
-      say (mode, MSG_E, "%sYou need to run this as root.%s\n",
-                        MODE_OUT == mode ? C_BRED : "",
-                        MODE_OUT == mode ? C_NORMAL : "");
-      exit (1);
-    }
-
   if (argc != 2)
     {
       usage ();
-      exit (1);
-    }
-
-  if (access (LOCKFILE, 0))
-    {
-      say (mode, MSG_E, "%sDeamon is not running, quit.%s\n",
-                        MODE_OUT == mode ? C_BGRED : "",
-                        MODE_OUT == mode ? C_NORMAL : "");
       exit (1);
     }
 
@@ -719,7 +647,35 @@ main (const int argc, const char * const * const argv)
     }
   strcpy (action, argv[1]);
 
-  if (-1 == (status = attempt ("^add$", action, add)))
+  if (-1 == (status = attempt ("^-?h(elp)?$", action, usage)))
+    {
+      say (mode, MSG_E, "attempt failed\n");
+      error = 1;
+      goto CLEAN;
+    }
+  if (status)
+    {
+      error = 1;
+      goto CLEAN;
+    }
+
+  /* Check uid  */
+  if (getuid ())
+    {
+      say (mode, MSG_E, "%sYou need to run this as root.%s\n",
+            COLORIT (C_BRED), COLORIT (C_NORMAL));
+      exit (1);
+    }
+
+  if (access (LOCKFILE, 0))
+    {
+      say (mode, MSG_E, "%sDeamon is not running, quit.%s\n",
+            COLORIT (C_BGRED), COLORIT (C_NORMAL));
+      exit (1);
+    }
+
+
+  if (-1 == (status = attempt ("^-?add$", action, add)))
     {
       say (mode, MSG_E, "attempt failed\n");
       error = 1;
@@ -731,7 +687,7 @@ main (const int argc, const char * const * const argv)
       goto CLEAN;
     }
 
-  if (-1 == (status = attempt ("^del(ete)?$", action, del)))
+  if (-1 == (status = attempt ("^-?del(ete)?$", action, del)))
     {
       say (mode, MSG_E, "attempt failed\n");
       error = 1;
@@ -740,13 +696,6 @@ main (const int argc, const char * const * const argv)
   if (status)
     {
       error = 0;
-      goto CLEAN;
-    }
-
-  if (-1 == (status = attempt ("^h(elp)?$", action, usage)))
-    {
-      say (mode, MSG_E, "attempt failed\n");
-      error = 1;
       goto CLEAN;
     }
 
