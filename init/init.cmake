@@ -1,5 +1,5 @@
 set (INIT_SCRIPT_PATH ${CMAKE_CURRENT_LIST_DIR})
-set (SYSTEMD_DIR /lib/systemd/system)
+set (SYSTEMD_DIR /usr/lib/systemd/system)
 set (UPSTART_DIR /etc/init)
 set (SYSVINIT_DIR /etc/init.d)
 set (BSDINIT_DIR /etc/rc.d)
