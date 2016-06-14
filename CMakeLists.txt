@@ -19,5 +19,5 @@ add_subdirectory (${SOURCE_PATH})
 add_subdirectory (${INIT_SCRIPT_PATH})
 
 set (BINARYS ${EXECUTABLE_OUTPUT_PATH}/sudodev ${EXECUTABLE_OUTPUT_PATH}/sudodevd)
-install (PROGRAMS ${BINARYS} DESTINATION /usr/bin)
+install (PROGRAMS ${BINARYS} DESTINATION ${CMAKE_INSTALL_PREFIX}/usr/bin)
 

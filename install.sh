@@ -4,13 +4,26 @@
 # ==============================================================================
 
 RDIR=$(dirname $(readlink -f $0))
+BUILDDIR=${RDIR}/build
 BUILD_SH="${RDIR}/build.sh"
-BUILD_ARGS="install"
 
-if [[ -x $BUILD_SH ]]
-then
-  command $BUILD_SH $BUILD_ARGS $@
-fi
+function install ()
+{
+  if [[ -x $BUILD_SH ]]
+  then
+    command $BUILD_SH $@
+  fi
+
+  if [[  0 -eq $? ]]
+  then
+    cd $BUILDDIR  \
+      && sudo make install -j4
+  fi
+
+  return $?
+}
+
+install $@
 
 exit $?
 
