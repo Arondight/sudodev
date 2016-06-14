@@ -14,3 +14,10 @@ tags*
 /src/
 /sudodev/
 
+# tmp files
+.PKGINFO
+.BUILDINFO
+.INSTALL
+.MTREE
+/usr/
+

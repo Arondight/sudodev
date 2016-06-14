@@ -10,8 +10,16 @@ This allows you to choose some devices (identify by [UUID][ID_UUID]), so that wh
 
 # INSTALL
 
+## Arch Linux
+
+```bash
+yaourt -S sudodev-git
 ```
-git clone https://github.com/Arondight/sudodev.git sudodev
+
+## Other Distributions
+
+```bash
+git clone https://github.com/Arondight/sudodev.git
 cd sudodev
 ./install.sh
 ```
