@@ -9,7 +9,7 @@ BUILD_ARGS="install"
 
 if [[ -x $BUILD_SH ]]
 then
-  command $BUILD_SH $BUILD_ARGS
+  command $BUILD_SH $BUILD_ARGS $@
 fi
 
 exit $?

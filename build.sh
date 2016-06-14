@@ -19,7 +19,7 @@ function build ()
 function install ()
 {
   cd $BUILDDIR  \
-    && sudo make install -j4
+    && sudo make install -j4 $@
 
   return $?
 }
@@ -28,7 +28,7 @@ build
 
 if [[ 0 -eq $? && 'install' == $1 ]]
 then
-  install
+  shift && install $@
 fi
 
 exit $?
