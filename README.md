@@ -4,7 +4,7 @@ sudodev - Create your special device for a none-password sudo
 
 # SYNOPSIS
 
-This allows you to choose some devices (identify by [UUID][ID_UUID]), so that when any of them are connected to your computer, your sudo command no longer need password.
+This allows you to choose some devices (identify by Partition's [UUID][ID_UUID]), so that when any of them are connected to your computer, your sudo command no longer need password.
 
 [ID_UUID]: https://en.wikipedia.org/w/index.php?title=Universally_unique_identifier "Learn more about UUID"
 
@@ -18,10 +18,18 @@ yaourt -S sudodev-git
 
 ## Other Distributions
 
+First install sudodev.
+
 ```bash
 git clone https://github.com/Arondight/sudodev.git
 cd sudodev
 ./install.sh
+```
+
+Then reboot to accept new group.
+
+```bash
+sudo reboot
 ```
 
 # USAGE
