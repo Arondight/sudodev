@@ -70,10 +70,11 @@ usage (void)
     {
       "This is sudodev, version ", VERSION, "\n",
       "\n",
-      "Usage: sudodev [add|del]\n",
+      "Usage: sudodev [add|del|help]\n",
       "\n",
       "  add:\tadd a device for none-password sudo\n",
       "  del:\tdelete a device from configure file\n",
+      "  help:\tshow this message\n",
       "\n",
       "NOTICE: You must be a member of \"sudodev\" group\n",
       NULL  /* Last element should be NULL */
@@ -81,8 +82,7 @@ usage (void)
 
   for (line = 0; text[line]; ++line)
     {
-      say (mode, MSG_I, "%s%s%s",
-            COLORIT (C_BBLUE), text[line], COLORIT (C_NORMAL));
+      say (mode, MSG_I, text[line]);
     }
 
   return 1;
@@ -276,8 +276,8 @@ add (void)
 
   if (count < 1)
     {
-      say (mode, MSG_W, "%sNo available device found%s\n",
-            COLORIT (C_BCYAN), COLORIT (C_NORMAL));
+      say (mode, MSG_I, "%sNo available device found%s\n",
+            COLORIT (C_BRED), COLORIT (C_NORMAL));
       error = 0;
       goto CLEAN;
     }
@@ -319,7 +319,7 @@ add (void)
 
   error = 0;
 
-  say (mode, MSG_I, "%sadding device%s...",
+  say (mode, MSG_I, "%sAdding device%s ...\t",
         COLORIT (C_BCYAN), COLORIT (C_NORMAL));
   if (-1 == profileAddItem (devices[no - 1]->uuid))
     {
@@ -327,9 +327,9 @@ add (void)
       error = 1;
       goto CLEAN;
     }
-  say (mode, MSG_I, "%sdone%s\n", COLORIT (C_BGGREEN), COLORIT (C_NORMAL));
+  say (mode, MSG_I, "%sdone%s\n", COLORIT (C_BGREEN), COLORIT (C_NORMAL));
 
-  say (mode, MSG_I, "%sreloading config...%s",
+  say (mode, MSG_I, "%sReloading config%s ...\t",
                     COLORIT (C_BCYAN), COLORIT (C_NORMAL));
   if (-1 == reload ())
     {
@@ -340,7 +340,7 @@ add (void)
       error = 1;
       goto CLEAN;
     }
-  say (mode, MSG_I, "%sdone%s\n", COLORIT (C_BGGREEN), COLORIT (C_NORMAL));
+  say (mode, MSG_I, "%sdone%s\n", COLORIT (C_BGREEN), COLORIT (C_NORMAL));
 
 CLEAN:
   if (list)
@@ -485,7 +485,7 @@ del (void)
       if (!(strncmp (UNKNOWNSTR, devices[index]->name, UNKNOWNSTRLEN)))
         {
           strncpy (buff, devices[index]->uuid, 8);
-          say (mode, MSG_I, "\t->  %s%s%s...\n",
+          say (mode, MSG_I, "\t->  %s%s%s ...\n",
                 COLORIT (C_BRED), buff, COLORIT (C_NORMAL));
         }
       else
@@ -530,7 +530,7 @@ del (void)
 
   error = 0;
 
-  say (mode, MSG_I, "%sdeleting device%s...",
+  say (mode, MSG_I, "%sDeleting device%s ...\t",
         COLORIT (C_BCYAN), COLORIT (C_NORMAL));
   if (-1 == profileDelItem (devices[no - 1]->uuid))
     {
@@ -538,9 +538,9 @@ del (void)
       error = 1;
       goto CLEAN;
     }
-  say (mode, MSG_I, "%sdone%s\n", COLORIT (C_BGGREEN), COLORIT (C_NORMAL));
+  say (mode, MSG_I, "%sdone%s\n", COLORIT (C_BGREEN), COLORIT (C_NORMAL));
 
-  say (mode, MSG_I, "%sreloading config%s...",
+  say (mode, MSG_I, "%sReloading config%s ...\t",
         COLORIT (C_BCYAN), COLORIT (C_NORMAL));
   if (-1 == reload ())
     {
@@ -551,7 +551,7 @@ del (void)
       error = 1;
       goto CLEAN;
     }
-  say (mode, MSG_I, "%sdone%s\n", COLORIT (C_BGGREEN), COLORIT (C_NORMAL));
+  say (mode, MSG_I, "%sdone%s\n", COLORIT (C_BGREEN), COLORIT (C_NORMAL));
 
 CLEAN:
   if (list)
