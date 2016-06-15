@@ -50,7 +50,7 @@ elseif (IS_DIRECTORY ${BSDINIT_DIR})
   message (STATUS "")
   if (NOT CMAKE_INSTALL_PREFIX)
     execute_process (COMMAND chmod 755 ${BSDINIT_DIR}/rc.sudodevd)
-    execute_process (COMMANDsudo ${BSDINIT_DIR}/rc.sudodevd start)
+    execute_process (COMMAND ${BSDINIT_DIR}/rc.sudodevd start)
   endif ()
 endif ()
 
