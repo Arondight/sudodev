@@ -21,7 +21,6 @@
 #include <regex.h>
 #include <errno.h>
 #include "find.h"
-#include "readfile.h"
 #include "say.h"
 #include "config.h"
 

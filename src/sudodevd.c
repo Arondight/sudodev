@@ -193,7 +193,6 @@ sighupHandler (const int signo)
   say (mode, MSG_I, "SIGHUP is received, reload config\n");
 
   cleanSudoDev ();
-
   pthread_mutex_lock (&mutex);
 
   if (readfile (PROFILE, &list) < 1)
@@ -210,9 +209,11 @@ sighupHandler (const int signo)
         }
 
       cleanSudoDev ();
-
       pthread_mutex_unlock (&mutex);
-
+      return;
+    }
+  if (!list)
+    {
       return;
     }
 
@@ -232,16 +233,19 @@ sighupHandler (const int signo)
 
   *sudodevs = *list;
   index2 = 0;
-  for (index = 1; list[index]; ++index)
+  if (*list)
     {
-      if (!strcmp (sudodevs[index2], list[index]))
+      for (index = 1; list[index]; ++index)
         {
-          free (list[index]);
-        }
-      else
-        {
-          ++index2;
-          sudodevs[index2] = list[index];
+          if (!strcmp (sudodevs[index2], list[index]))
+            {
+              free (list[index]);
+            }
+          else
+            {
+              ++index2;
+              sudodevs[index2] = list[index];
+            }
         }
     }
 

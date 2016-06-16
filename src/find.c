@@ -48,6 +48,10 @@ find (const char * const path, const char * const pattern)
       say (mode, MSG_E, "readfile failed\n");
       return -1;
     }
+  if (!list)
+    {
+      return 0;
+    }
 
   if ((status = regcomp (&regex, pattern, REG_EXTENDED)) < 0)
     {

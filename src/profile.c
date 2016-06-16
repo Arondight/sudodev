@@ -224,8 +224,7 @@ profileAddItem (const char * const item)
     }
 
   /* Add item */
-  for (len = 0; list[len]; ++len);
-
+  for (len = 0; list && list[len]; ++len);
   list = (char **)realloc (list, (len + 2) * sizeof (char *));
   list[len] = line;
   list[len + 1] = NULL;

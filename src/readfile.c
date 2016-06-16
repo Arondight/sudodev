@@ -46,13 +46,15 @@ readfile (const char * const path, char ***list)
 
   if (access (path, 0))
     {
-      return 0;     /* No need to return -1 */
+      ret = 0;     /* No need to return -1 */
+      goto CLEAN;
     }
 
   if (!(fd = fopen (path, "r")))
     {
       say (mode, MSG_E, "fopen failed: %s\n", strerror (errno));
-      return -1;
+      ret = -1;
+      goto CLEAN;
     }
 
   /* Read into a tmp */
@@ -88,13 +90,13 @@ readfile (const char * const path, char ***list)
     }
 
   begin = end - 1;
-  ++end;
+  end += 2;
   if (!(tmp = (char *)realloc (tmp, end)))
     {
       say (mode, MSG_E, "realloc failed: %s\n", strerror (errno));
       abort ();
     }
-  memset (&tmp[begin], 0, end - begin);
+  memset (&tmp[begin + 1], 0, end - begin - 1);
 
   /* Add '\n' at last if necessary */
   if ('\n' != tmp[begin])
@@ -150,7 +152,6 @@ readfile (const char * const path, char ***list)
       split[no] = NULL;
     }
 
-  *list = split;
   ret = 1;
 
 CLEAN:
@@ -168,6 +169,20 @@ CLEAN:
     {
       free (tmp);
       tmp = NULL;
+    }
+
+  if (split)
+    {
+      *list = split;
+    }
+  else
+    {
+      if (!(*list = (char **)malloc (sizeof (char *))))
+        {
+          say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
+          abort ();
+        }
+      **list = NULL;
     }
 
   return ret;

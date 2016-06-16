@@ -68,6 +68,10 @@ localDevs (void)
       say (mode, MSG_E, "readfile failed\n");
       return -1;
     }
+  if (!text)
+    {
+      return 1;
+    }
 
   /* Remove all comments */
   for (index = 0; text[index]; ++index)
