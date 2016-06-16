@@ -8,7 +8,7 @@ This allows you to choose some devices (identify by Partition's [UUID][ID_UUID])
 
 [ID_UUID]: https://en.wikipedia.org/w/index.php?title=Universally_unique_identifier "Learn more about UUID"
 
-# INSTALL
+# INSTALLATION
 
 ## Arch Linux
 

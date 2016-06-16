@@ -45,9 +45,6 @@ readfile (const char * const path, char ***list)
 
   if (access (path, 0))
     {
-      /* Hide error message here { *
-      say (mode, MSG_E, "access failed: %s\n", strerror (errno));
-      * } */
       return 0;     /* No need to return -1 */
     }
 
@@ -72,22 +69,32 @@ readfile (const char * const path, char ***list)
       say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
       abort ();
     }
-  while (0 < size)
+  while (size > 0)
     {
       memcpy (&tmp[begin], in, size);
       begin += size;
       size = fread (in, sizeof (char), size, fd);
       end += size;
-      tmp = (char *)realloc (tmp, end);
+      if (!(tmp = (char *)realloc (tmp, end)))
+        {
+          say (mode, MSG_E, "realloc failed: %s\n", strerror (errno));
+          abort ();
+        }
     }
 
-  /* Add '\n' at last if necessary */
-  size = strlen (tmp);
-  if ('\n' != tmp[size - 1])
+  begin = end - 1;
+  ++end;
+  if (!(tmp = (char *)realloc (tmp, end)))
     {
-      tmp = (char *)realloc (tmp, size + 1);
-      tmp[size] = '\n';
-      tmp[size + 1] = 0;
+      say (mode, MSG_E, "realloc failed: %s\n", strerror (errno));
+      abort ();
+    }
+  memset (&tmp[begin], 0, end - begin);
+
+  /* Add '\n' at last if necessary */
+  if ('\n' != tmp[begin])
+    {
+      tmp[begin + 1] = '\n';
     }
 
   /* Split into split */
@@ -130,13 +137,29 @@ readfile (const char * const path, char ***list)
   /* Add a NULL a last if all of split is used */
   if (count == no)
     {
-      split = (char **)realloc (split, (no + 1) * sizeof (char **));
+      if (!(split = (char **)realloc (split, (no + 1) * sizeof (char **))))
+        {
+          say (mode, MSG_E, "realloc failed: %s\n", strerror (errno));
+          abort ();
+        }
       split[no] = NULL;
     }
 
-  fclose (fd);
-  free (in);
-  free (tmp);
+  if (fd)
+    {
+      fclose (fd);
+      fd = NULL;
+    }
+  if (in)
+    {
+      free (in);
+      in = NULL;
+    }
+  if (tmp)
+    {
+      free (tmp);
+      tmp = NULL;
+    }
 
   *list = split;
 
