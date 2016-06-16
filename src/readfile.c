@@ -35,6 +35,7 @@ readfile (const char * const path, char ***list)
   int begin = 0, end = 0;
   int count = 0, no = 0;
   int size = 0;
+  int ret = 0;
 
   sayMode (&mode);
 
@@ -62,7 +63,11 @@ readfile (const char * const path, char ***list)
       say (mode, MSG_E, "malloc failed: %s\n", strerror (errno));
       abort ();
     }
-  size = fread (in, sizeof (char), size, fd);
+  if ((size = fread (in, sizeof (char), size, fd)) < 1)
+    {
+      ret = 1;
+      goto CLEAN;
+    }
   end = size;
   if (!(tmp = (char *)malloc (size)))
     {
@@ -145,6 +150,10 @@ readfile (const char * const path, char ***list)
       split[no] = NULL;
     }
 
+  *list = split;
+  ret = 1;
+
+CLEAN:
   if (fd)
     {
       fclose (fd);
@@ -161,8 +170,6 @@ readfile (const char * const path, char ***list)
       tmp = NULL;
     }
 
-  *list = split;
-
-  return 1;
+  return ret;
 }
 
