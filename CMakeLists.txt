@@ -6,7 +6,7 @@ set (INIT_SCRIPT_PATH ${PROJECT_SOURCE_DIR}/init)
 set (SOURCE_PATH ${PROJECT_SOURCE_DIR}/src)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-  set (CMAKE_C_FLAGS "-Wall -lpthread")
+  set (CMAKE_C_FLAGS "-Wall")
   set (CMAKE_C_FLAGS_DEBUG "-g3")
   set (CMAKE_C_FLAGS_RELEASE "-O3")
   set (CMAKE_EXE_LINKER_FLAGS "-s")

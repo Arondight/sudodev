@@ -258,27 +258,6 @@ sighupHandler (const int signo)
   pthread_mutex_unlock (&mutex);
 }
 
-/* ========================================================================== *
- * Handle signals without a thread
- * ========================================================================== */
-static int
-sighandle (void)
-{
-  if (-1 == actionBinding (SIGTERM, sigtermHandler))
-    {
-      say (mode, MSG_E, "actionBinding failed\n");
-      return -1;
-    }
-
-  if (-1 == actionBinding (SIGHUP, sighupHandler))
-    {
-      say (mode, MSG_E, "actionBinding failed\n");
-      return -1;
-    }
-
-  return 1;
-}
-
 #if MULTITHREAD
 /* ========================================================================== *
  * A thread to handle signals
@@ -312,6 +291,28 @@ sighandler (void *arg)
     }
 
   return NULL;
+}
+#else
+
+/* ========================================================================== *
+ * Handle signals without a thread
+ * ========================================================================== */
+static int
+sighandle (void)
+{
+  if (-1 == actionBinding (SIGTERM, sigtermHandler))
+    {
+      say (mode, MSG_E, "actionBinding failed\n");
+      return -1;
+    }
+
+  if (-1 == actionBinding (SIGHUP, sighupHandler))
+    {
+      say (mode, MSG_E, "actionBinding failed\n");
+      return -1;
+    }
+
+  return 1;
 }
 #endif
 

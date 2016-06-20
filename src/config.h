@@ -19,7 +19,7 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-#define VERSION ("0.27")
+#define VERSION ("0.28")
 
 /* Never modify this { */
 #define SUDODEV_GROUP ("sudodev")
