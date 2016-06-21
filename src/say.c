@@ -27,6 +27,7 @@
 #include <sys/param.h>
 #include "say.h"
 #include "config.h"
+#include "assert.h"
 
 /* See config.h { */
 #ifndef THREADSAFE_SAY
@@ -143,30 +144,33 @@ say (const saymode_t mode, const saylevel_t level, const char * const str, ...)
   int out = 0;
   int priority = 0;
 
-  if (!str)
-    {
-      return -1;
-    }
+  ASSERT_RETURN (str, "str is NULL.\n", -1)
 
   /* Set how to print */
-  if (MSG_E == level)
+  switch (level)
     {
-      out = STDERR_FILENO;
-      priority = LOG_ERR;
-    }
-  else if (MSG_W == level)
-    {
-      out = STDOUT_FILENO;
-      priority = LOG_WARNING;
-    }
-  else if (MSG_I == level)
-    {
-      out  = STDOUT_FILENO;
-      priority = LOG_INFO;
-    }
-  else
-    {
-      return -1;
+      case MSG_E:
+        {
+          out = STDERR_FILENO;
+          priority = LOG_ERR;
+          break;
+        }
+      case MSG_W:
+        {
+          out = STDOUT_FILENO;
+          priority = LOG_WARNING;
+          break;
+        }
+      case MSG_I:
+        {
+          out  = STDOUT_FILENO;
+          priority = LOG_INFO;
+          break;
+        }
+      default:
+        {
+          return -1;
+        }
     }
 
   va_start (arg, str);

@@ -28,10 +28,10 @@
   (say ((m), (t), (f), ##__VA_ARGS__)))
 
 #define ASSERT_ABORT(e,s) \
- ((e) ? (void)0 : ((LOG (mode, MSG_E, (s))), abort ()))
+  ((e) ? (void)0 : ((LOG (mode, MSG_E, (s))), abort ()))
 
 #define ASSERT_LOG(e,s) \
- ((e) ? (void)0 : ((LOG (mode, MSG_E, (s)))))
+  ((e) ? (void)0 : ((LOG (mode, MSG_E, (s)))))
 
 #define ASSERT_RETURN(e,s,r)  \
   { if (!(e)) { LOG (mode, MSG_E, (s)); return (r); } }

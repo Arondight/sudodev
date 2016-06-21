@@ -699,6 +699,8 @@ main (const int argc, const char * const * const argv)
       goto CLEAN;
     }
 
+  error = 0;
+
 CLEAN:
   free (action);
 
