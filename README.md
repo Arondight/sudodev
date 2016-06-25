@@ -1,22 +1,20 @@
-# NAME
+# sudodev
 
-sudodev - Create your special device for a none-password sudo
-
-# SYNOPSIS
+## ABOUT
 
 This allows you to choose some devices (identify by Partition's [UUID][ID_UUID]), so that when any of them are connected to your computer, your sudo command no longer need password.
 
 [ID_UUID]: https://en.wikipedia.org/w/index.php?title=Universally_unique_identifier "Learn more about UUID"
 
-# INSTALLATION
+## INSTALLATION
 
-## Arch Linux
+### Arch Linux
 
 ```bash
 yaourt -S sudodev-git
 ```
 
-## Other Distributions
+### Other Distributions
 
 First install sudodev.
 
@@ -32,21 +30,21 @@ Then reboot to accept new group.
 sudo reboot
 ```
 
-# USAGE
+## USAGE
 
 ```bash
 sudodev help
 ```
 
-# NOTICE
+## NOTICE
 
 Do **NOT** repart your device or it will lose effectiveness.
 
-# COPYRIGHT
+## COPYRIGHT
 
 Copyright (c) 2015-2016 秦凡东 (Qin Fandong)
 
-# LICENSE
+## LICENSE
 
 Read [LICENSE][ID_LICENSE]
 
