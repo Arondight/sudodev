@@ -1,22 +1,19 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# This to build project
+# This to clean project
 # ==============================================================================
 
 RDIR=$(dirname $(readlink -f $0))
-BUILDDIR="${RDIR}/build"
+TOCLEAN=( "${RDIR}/build" "${RDIR}/bin" )
 
-function build ()
+function clean ()
 {
-  mkdir -p $BUILDDIR  \
-    && cd $BUILDDIR \
-    && cmake .. -DCMAKE_BUILD_TYPE=Release $@ \
-    && cmake --build . --config Release -- -j4
+  rm -rvf ${TOCLEAN[@]}
 
   return $?
 }
 
-build $@
+clean $@
 
 exit $?
 

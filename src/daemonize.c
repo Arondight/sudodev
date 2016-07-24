@@ -92,7 +92,7 @@ newSession (void)
  * Disable controlling terminal
  * ========================================================================== */
 static int
-noTTY (void)
+dropTTY (void)
 {
   struct sigaction action = { 0 };
   pid_t pid = 0;
@@ -194,7 +194,7 @@ daemonize (const char * const ident)
 
   status |= setMask ();
   status |= newSession ();
-  status |= noTTY ();
+  status |= dropTTY ();
   status |= chrootdir ();
   status |= closeFD ();
   status |= reopen ();

@@ -1,4 +1,10 @@
-cmake_minimum_required (VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required (VERSION 2.8 FATAL_ERROR)
+
+project (sudodev C)
+
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set (CMAKE_INSTALL_PREFIX /usr)
+endif ()
 
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
@@ -21,6 +27,8 @@ include_directories (${SOURCE_PATH})
 add_subdirectory (${SOURCE_PATH})
 add_subdirectory (${INIT_SCRIPT_PATH})
 
+message (STATUS ${CMAKE_INSTALL_PREFIX})
+
 set (BINARYS ${EXECUTABLE_OUTPUT_PATH}/sudodev ${EXECUTABLE_OUTPUT_PATH}/sudodevd)
-install (PROGRAMS ${BINARYS} DESTINATION ${CMAKE_INSTALL_PREFIX}/usr/bin)
+install (PROGRAMS ${BINARYS} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 

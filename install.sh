@@ -16,8 +16,14 @@ function install ()
 
   if [[  0 -eq $? ]]
   then
-    cd $BUILDDIR  \
-      && sudo make install -j4
+    cd $BUILDDIR
+
+    if [[ 0 == $# ]]
+    then
+      sudo make install -j4
+    else
+      make install -j4
+    fi
   fi
 
   return $?
