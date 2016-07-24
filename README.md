@@ -8,13 +8,13 @@ This allows you to choose some devices (identify by Partition's [UUID][ID_UUID])
 
 ## INSTALLATION
 
-### Arch Linux
+### ARCH LINUX
 
 ```bash
 yaourt -S sudodev-git
 ```
 
-### Other Distributions
+### OTHER DISTRIBUTIONS
 
 First install sudodev.
 
